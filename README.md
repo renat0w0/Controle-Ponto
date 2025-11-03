@@ -1,199 +1,351 @@
-# ⏰ Sistema de Controle de Ponto
+# ⏰ Controle de Ponto (Web)# ⏰ Controle de Ponto (Web)
 
-Um sistema web moderno e intuitivo para controle de ponto eletrônico, com dashboard completo, gráficos interativos e tema claro/escuro.
 
-## 📸 Demonstração
 
-Sistema completo de gestão de horas trabalhadas com interface responsiva e moderna.
+Aplicação web moderna para controle de ponto eletrônico, com login, importação de CSV, sincronização com a API IDSecure, dashboard com gráficos (Chart.js), tema claro/escuro e armazenamento local (LocalStorage).Aplicação web moderna para controle de ponto eletrônico, com login, importação de CSV, sincronização com a API IDSecure, dashboard com gráficos (Chart.js), tema claro/escuro e armazenamento local (LocalStorage).
 
-## ✨ Funcionalidades
 
-### 📊 Dashboard Interativo
-- **KPIs em tempo real**: Visualização de horas trabalhadas, extras e estatísticas
-- **Gráficos dinâmicos**: 
-  - Gráfico de barras empilhadas (Horas Normais vs Extras)
-  - Gráfico de linha para evolução de horas extras
-  - Cores adaptativas para cada tema
-- **Filtros de período**: 7 dias, 15 dias, 30 dias ou visualização completa
-- **Filtro por data**: Selecione período personalizado (De/Até)
-- **Resumo semanal**: Tabela com análise por semana (dias trabalhados, total, extras, média diária)
 
-### 📝 Gestão de Registros
-- **Tabela completa** de todos os registros de ponto
-- **Informações detalhadas**: Data, dia da semana, entrada, saída, total trabalhado e horas extras
-- **Busca e filtros** para encontrar registros específicos
-- **Estatísticas rápidas**: Total de registros e período atual
+## 📸 Visão geral## 📸 Visão geral
 
-### 🔄 Importação de Dados
-- **Upload de CSV**: Importe múltiplos registros de uma vez
-- **Formato flexível**: Suporta diversos formatos de data e hora
-- **Validação automática**: Verifica dados antes da importação
-- **Feedback visual**: Progresso e confirmação da importação
 
-### 🔌 Integração com API
-- **Sincronização IDSecure**: Busque registros diretamente da API IDSecure
-- **Seleção de período**: Escolha o intervalo de datas para sincronizar
-- **Login seguro**: Autenticação integrada
-- **Atualização automática**: Sincronize sempre que necessário
 
-### 🎨 Interface Moderna
-- **Tema Claro/Escuro**: Alternância suave entre temas
-  - Modo claro: Interface clean e minimalista
-  - Modo escuro: Visual profissional com gradientes e profundidade
-- **Design responsivo**: Funciona perfeitamente em desktop, tablet e mobile
-- **Header auto-hide**: Se oculta automaticamente ao rolar a página
-- **Animações suaves**: Transições e efeitos visuais elegantes
-- **Sidebar colapsável**: Navegação lateral com menu expansível
+- Dashboard com KPIs, gráficos e resumo semanal- Dashboard com KPIs, gráficos e resumo semanal
 
-## 🛠️ Tecnologias Utilizadas
+- Páginas dedicadas para Registros, Importação de CSV e Sincronização via API- Páginas dedicadas para Registros, Importação de CSV e Sincronização via API
 
-- **HTML5**: Estrutura semântica e moderna
-- **CSS3**: Estilização avançada com variáveis CSS, gradientes e animações
-- **JavaScript (ES6+)**: Lógica de negócio e manipulação do DOM
-- **Chart.js**: Biblioteca para gráficos interativos e responsivos
-- **LocalStorage**: Armazenamento local de dados e preferências
-- **Remix Icons**: Ícones modernos e consistentes
+- Interface responsiva com sidebar, tema dark/light e header auto-hide- Interface responsiva com sidebar, tema dark/light e header auto-hide
 
-## 📁 Estrutura do Projeto
+
+
+## ✨ Funcionalidades## ✨ Funcionalidades
+
+
+
+### 📊 Dashboard interativo (pages/dashboard.html)### 📊 Dashboard interativo (pages/dashboard.html)
+
+- KPIs: Total trabalhado, Horas extras, Média diária, Dias trabalhados
+
+- KPIs: Total trabalhado, Horas extras, Média diária, Dias trabalhados- Gráficos (Chart.js):
+
+- Gráficos (Chart.js):  - Barras empilhadas por semana (Horas Normais × Extras)
+
+  - Barras empilhadas por semana (Horas Normais × Extras)  - Linha da evolução diária de horas extras
+
+  - Linha da evolução diária de horas extras- Filtros de período: últimos 7 dias, mês atual, todos, ou intervalo personalizado
+
+- Filtros de período: últimos 7 dias, mês atual, todos, ou intervalo personalizado- Resumo semanal com: dias, total, extras e média diária
+
+- Resumo semanal com: dias, total, extras e média diária
+
+### 📝 Registros (pages/registros.html)
+
+### 📝 Registros (pages/registros.html)- Tabela agrupada por data com dia da semana, entrada, saída, total e extra
+
+- Filtro por período (de/até) e exportação para CSV (UTF-8 com BOM)
+
+- Tabela agrupada por data com dia da semana, entrada, saída, total e extra- Destaques visuais para fim de semana e para horas extras
+
+- Filtro por período (de/até) e exportação para CSV (UTF-8 com BOM)
+
+- Destaques visuais para fim de semana e para horas extras### � Importação (pages/importar.html)
+
+- Arraste-e-solte ou seleção de arquivo CSV
+
+### 📥 Importação (pages/importar.html)- Parser flexível: detecta padrões “DD/MM/YYYY HH:MM” em qualquer linha
+
+- Agrupamento automático por dia (primeira ocorrência = entrada, última = saída)
+
+- Arraste-e-solte ou seleção de arquivo CSV- Feedback de importados e duplicados
+
+- Parser flexível: detecta padrões "DD/MM/YYYY HH:MM" em qualquer linha
+
+- Agrupamento automático por dia (primeira ocorrência = entrada, última = saída)### 🔌 Integração com API IDSecure (pages/api.html)
+
+- Feedback de importados e duplicados- Login pelo endpoint de operadores: main.idsecure.com.br
+
+- Busca de pessoas e sincronização de logs via report.idsecure.com.br
+
+### 🔌 Integração com API IDSecure (pages/api.html)- Seleção de período para sincronizar e persistência no LocalStorage
+
+- Logout e limpeza de credenciais
+
+- Login pelo endpoint de operadores: main.idsecure.com.br
+
+- Busca de pessoas e sincronização de logs via report.idsecure.com.br### 🎨 UI/UX
+
+- Seleção de período para sincronizar e persistência no LocalStorage- Tema Claro/Escuro com persistência
+
+- Logout e limpeza de credenciais- Sidebar colapsável, auto-hide do header ao rolar, ícones Remix Icons
+
+- Layout responsivo focado em desktop e dispositivos móveis
+
+### 🎨 UI/UX
+
+## 🛠️ Tecnologias
+
+- Tema Claro/Escuro com persistência
+
+- Sidebar colapsável, auto-hide do header ao rolar, ícones Remix Icons- HTML5, CSS3 (variáveis, gradientes, responsivo)
+
+- Layout responsivo focado em desktop e dispositivos móveis- JavaScript (ES6+)
+
+- Chart.js (gráficos interativos)
+
+## 🛠️ Tecnologias- LocalStorage (dados e preferências)
+
+- Remix Icons
+
+- HTML5, CSS3 (variáveis, gradientes, responsivo)
+
+- JavaScript (ES6+)## 📁 Estrutura do projeto
+
+- Chart.js (gráficos interativos)
+
+- LocalStorage (dados e preferências)```
+
+- Remix IconsControle-Ponto/
+
+├── index.html               # Redireciona para a aplicação (login/dashboard)
+
+## 📁 Estrutura do projeto├── login.html               # Tela de login (IDSecure)
+
+├── style.css                # Estilos globais, temas e componentes
+
+```text├── app.js                   # (Legado) Lógica consolidada/experimental
+
+Controle-Ponto/├── js/
+
+├── index.html               # Redireciona para a aplicação (login/dashboard)│   ├── core.js             # Utilidades, cálculos, storage, proteção de rotas
+
+├── login.html               # Tela de login (IDSecure)│   ├── dashboard.js        # Métricas, gráficos e tabela semanal
+
+├── style.css                # Estilos globais, temas e componentes│   ├── registros.js        # Listagem/agrupamento e exportação CSV
+
+├── app.js                   # (Legado) Lógica consolidada/experimental│   ├── importar.js         # Parser CSV e fluxo de importação
+
+├── js/│   ├── api.js              # Login/busca/sincronização com IDSecure
+
+│   ├── core.js             # Utilidades, cálculos, storage, proteção de rotas│   ├── sidebar.js          # Sidebar, tema (dark), avatar do usuário
+
+│   ├── dashboard.js        # Métricas, gráficos e tabela semanal│   └── theme.js            # (Opcional) Toggle de tema baseado em data-theme
+
+│   ├── registros.js        # Listagem/agrupamento e exportação CSV└── pages/
+
+│   ├── importar.js         # Parser CSV e fluxo de importação    ├── dashboard.html      # Dashboard principal
+
+│   ├── api.js              # Login/busca/sincronização com IDSecure    ├── registros.html      # Registros com filtros e exportação
+
+│   ├── sidebar.js          # Sidebar, tema (dark), avatar do usuário    ├── importar.html       # Importação CSV
+
+│   └── theme.js            # (Opcional) Toggle de tema baseado em data-theme    └── api.html            # Sincronização via API IDSecure
+
+└── pages/```
+
+    ├── dashboard.html      # Dashboard principal
+
+    ├── registros.html      # Registros com filtros e exportaçãoObservação: `app.js` concentra uma versão mais antiga/monolítica do fluxo. As páginas em `pages/` utilizam os módulos em `js/` e são o caminho recomendado.
+
+    ├── importar.html       # Importação CSV
+
+    └── api.html            # Sincronização via API IDSecure## 🚀 Como executar
 
 ```
-autorefresh/
-├── pages/
-│   ├── dashboard.html      # Dashboard principal com gráficos
-│   ├── registros.html      # Página de visualização de registros
-│   ├── importar.html       # Importação de CSV
-│   └── api.html           # Sincronização com API IDSecure
-├── js/
-│   ├── core.js            # Funções utilitárias e cálculos
-│   ├── dashboard.js       # Lógica do dashboard e gráficos
-│   ├── registros.js       # Gerenciamento de registros
-│   ├── importar.js        # Lógica de importação CSV
-│   ├── api.js             # Integração com API
-│   ├── sidebar.js         # Controle da sidebar e tema
-│   └── theme.js           # Gerenciamento de tema
-├── style.css              # Estilos globais
-├── app.js                 # Script principal
-└── README.md              # Este arquivo
-```
 
-## 🚀 Como Usar
+Você pode abrir diretamente os arquivos HTML ou servir via um servidor local (recomendado para evitar problemas de CORS e caminhos relativos).
 
-### 1. Instalação Local
+Observação: `app.js` concentra uma versão mais antiga/monolítica do fluxo. As páginas em `pages/` utilizam os módulos em `js/` e são o caminho recomendado.
 
-Clone o repositório:
-```bash
-git clone https://github.com/renat0w0/autorefresh.git
-cd autorefresh
-```
+1) Abrir diretamente (rápido):
 
-### 2. Executar o Projeto
+## 🚀 Como executar- Abra `login.html` no navegador. Após login, acesse as páginas em `pages/`.
 
-Abra o arquivo `pages/dashboard.html` diretamente no navegador ou use um servidor local:
 
-**Opção 1 - Direto no navegador:**
-- Abra `pages/dashboard.html` no seu navegador
 
-**Opção 2 - Com servidor local (recomendado):**
-```bash
-# Usando Python
-python -m http.server 8000
+Você pode abrir diretamente os arquivos HTML ou servir via um servidor local (recomendado para evitar problemas de CORS e caminhos relativos).2) Servidor local (recomendado):
 
-# Usando Node.js
-npx http-server
+- Python (3.x):
 
-# Usando PHP
-php -S localhost:8000
-```
+**Opção 1 - Abrir diretamente (rápido):**  - Windows PowerShell: `python -m http.server 8000`
 
-Acesse: `http://localhost:8000/pages/dashboard.html`
+  - Acesse: `http://localhost:8000/login.html`
 
-### 3. Importar Dados
+- Abra `login.html` no navegador. Após login, acesse as páginas em `pages/`.- Node.js (http-server):
 
-**Via CSV:**
-1. Vá para a página "Importar"
-2. Clique em "Escolher arquivo"
-3. Selecione seu arquivo CSV
-4. Clique em "Importar Registros"
+  - `npx http-server -p 8000`
 
-**Formato do CSV:**
-```csv
-data,entrada,saida
-2025-09-01,06:43,17:26
-2025-09-02,06:48,17:48
-2025-09-03,06:51,20:31
-```
+**Opção 2 - Servidor local (recomendado):**  - Acesse: `http://localhost:8000/login.html`
 
-**Via API IDSecure:**
-1. Vá para a página "Sincronizar API"
-2. Faça login com suas credenciais
-3. Selecione o período desejado
-4. Clique em "Sincronizar Registros"
 
-## 💡 Recursos Especiais
 
-### Cálculo de Horas Extras
-O sistema calcula automaticamente as horas extras baseado em:
-- **Dias úteis**: Extras após 17:30h
-- **Finais de semana**: Todo tempo trabalhado é considerado extra
-- **Jornada normal**: 8h40min (configurável)
+- Python (3.x):URLs úteis quando servido localmente:
 
-### Agrupamento Semanal
-- Agrupa registros por semana do ano (S1, S2, S3...)
-- Calcula totais, extras e média diária por semana
-- Visualização em gráficos e tabelas
+  - Windows PowerShell: `python -m http.server 8000`- Login: `/login.html`
 
-### Temas Adaptativos
-- **Cores dinâmicas**: Gráficos mudam de cor conforme o tema
-- **Persistência**: Preferência de tema salva no navegador
-- **Contraste otimizado**: Textos sempre legíveis em ambos os temas
+  - Acesse: `http://localhost:8000/login.html`- Dashboard: `/pages/dashboard.html`
 
-### Performance
-- **Lazy loading**: Carregamento otimizado de recursos
-- **Debouncing**: Otimização de eventos de scroll
-- **Cache inteligente**: Uso eficiente do LocalStorage
+- Node.js (http-server):- Registros: `/pages/registros.html`
 
-## 🎯 Funcionalidades Futuras
+  - `npx http-server -p 8000`- Importar CSV: `/pages/importar.html`
 
-- [ ] Exportação de relatórios em PDF
-- [ ] Notificações de lembrete de ponto
-- [ ] Integração com Google Calendar
-- [ ] Modo offline completo (PWA)
-- [ ] Backup automático na nuvem
-- [ ] Múltiplos perfis de usuário
-- [ ] Relatórios personalizáveis
-- [ ] API própria para integração
+  - Acesse: `http://localhost:8000/login.html`- Sincronizar API: `/pages/api.html`
 
-## 🐛 Problemas Conhecidos
 
-Nenhum problema conhecido no momento. Se encontrar algum bug, por favor abra uma [issue](https://github.com/renat0w0/autorefresh/issues).
 
-## 🤝 Contribuindo
+URLs úteis quando servido localmente:## 🔑 Autenticação e dados
 
-Contribuições são bem-vindas! Sinta-se à vontade para:
 
-1. Fazer fork do projeto
-2. Criar uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abrir um Pull Request
+
+- Login: `/login.html`- Login: feito na `login.html` chamando `fazerLogin(email, senha)` (IDSecure).
+
+- Dashboard: `/pages/dashboard.html`- Proteção de rotas: `core.js` redireciona para `login.html` se não houver `apiToken` no LocalStorage.
+
+- Registros: `/pages/registros.html`- Armazenamento no navegador:
+
+- Importar CSV: `/pages/importar.html`  - `registros`: lista dos registros agrupados por dia (entrada/saída)
+
+- Sincronizar API: `/pages/api.html`  - `apiToken`, `apiEmail`: sessão do IDSecure
+
+  - `usuarioNome`, `usuarioFoto`: dados do usuário exibidos na sidebar
+
+## 🔑 Autenticação e dados  - Preferências de tema
+
+- Logout: botão “Sair” na sidebar remove credenciais e volta para o login.
+
+- Login: feito na `login.html` chamando `fazerLogin(email, senha)` (IDSecure).
+
+- Proteção de rotas: `core.js` redireciona para `login.html` se não houver `apiToken` no LocalStorage.## 📥 Importação de CSV
+
+- Armazenamento no navegador:
+
+  - `registros`: lista dos registros agrupados por dia (entrada/saída)- Vá em “Importar CSV” e solte/selecione o arquivo.
+
+  - `apiToken`, `apiEmail`: sessão do IDSecure- O parser reconhece datas no padrão brasileiro em qualquer linha (ex.: `03/11/2025 06:47`).
+
+  - `usuarioNome`, `usuarioFoto`: dados do usuário exibidos na sidebar- O sistema agrupa automaticamente por dia e define a primeira ocorrência como “entrada” e a última como “saída”.
+
+  - Preferências de tema
+
+- Logout: botão "Sair" na sidebar remove credenciais e volta para o login.Exemplo de linha válida (dentro do arquivo):
+
+
+
+## 📥 Importação de CSV```
+
+03/11/2025 06:47, alguma outra coluna, ...
+
+- Vá em "Importar CSV" e solte/selecione o arquivo.```
+
+- O parser reconhece datas no padrão brasileiro em qualquer linha (ex.: `03/11/2025 06:47`).
+
+- O sistema agrupa automaticamente por dia e define a primeira ocorrência como "entrada" e a última como "saída".## 🔄 Sincronização via API (IDSecure)
+
+
+
+Exemplo de linha válida (dentro do arquivo):1. Faça login em `login.html` com suas credenciais IDSecure.
+
+2. Acesse “Sincronizar API”, selecione o período e clique em “Sincronizar Registros”.
+
+```csv3. Os logs são buscados do endpoint `accesslog/logs` e salvos localmente.
+
+03/11/2025 06:47, alguma outra coluna, ...
+
+```Observações:
+
+- Requer conectividade externa e permissões no IDSecure.
+
+## 🔄 Sincronização via API (IDSecure)- Em caso de CORS/rede, a interface mostrará mensagens de erro.
+
+
+
+1. Faça login em `login.html` com suas credenciais IDSecure.## 🧮 Cálculo de horas
+
+2. Acesse "Sincronizar API", selecione o período e clique em "Sincronizar Registros".
+
+3. Os logs são buscados do endpoint `accesslog/logs` e salvos localmente.- Dias úteis: horas extras após 17:30.
+
+- Finais de semana: todo o período é extra.
+
+Observações:- Jornada padrão usada nos cálculos: 8h40min (configurável em `core.js`).
+
+
+
+- Requer conectividade externa e permissões no IDSecure.## 🧪 Dicas de uso
+
+- Em caso de CORS/rede, a interface mostrará mensagens de erro.
+
+- Use “Limpar Dados” na sidebar para resetar registros do navegador.
+
+## 🧮 Cálculo de horas- Exporte CSV pela página “Registros”.
+
+- Troque o tema pelo botão “Tema” na sidebar; as cores dos gráficos se adaptam.
+
+- Dias úteis: horas extras após 17:30.
+
+- Finais de semana: todo o período é extra.## 🐛 Problemas conhecidos
+
+- Jornada padrão usada nos cálculos: 8h40min (configurável em `core.js`).
+
+- Abertura direta de arquivos pode causar limitações (CORS) ao chamar a API IDSecure. Prefira servir a pasta via servidor local.
+
+## 🧪 Dicas de uso
+
+Se encontrar um bug, abra uma issue: https://github.com/renat0w0/Controle-Ponto/issues
+
+- Use "Limpar Dados" na sidebar para resetar registros do navegador.
+
+- Exporte CSV pela página "Registros".## 🤝 Contribuição
+
+- Troque o tema pelo botão "Tema" na sidebar; as cores dos gráficos se adaptam.
+
+1. Faça fork do projeto
+
+## 🐛 Problemas conhecidos2. Crie sua branch (`git checkout -b feature/minha-feature`)
+
+3. Commit (`git commit -m "feat: adiciona minha feature"`)
+
+- Abertura direta de arquivos pode causar limitações (CORS) ao chamar a API IDSecure. Prefira servir a pasta via servidor local.4. Push (`git push origin feature/minha-feature`)
+
+5. Abra um Pull Request
+
+Se encontrar um bug, abra uma issue em: <https://github.com/renat0w0/Controle-Ponto/issues>
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## 🤝 Contribuição
 
-## 👨‍💻 Autor
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
 
-**Renato Alves** - [@renat0w0](https://github.com/renat0w0)
+1. Faça fork do projeto
 
-## 📞 Contato
+2. Crie sua branch (`git checkout -b feature/minha-feature`)## � Autor
 
-- GitHub: [@renat0w0](https://github.com/renat0w0)
-- LinkedIn: [Renato Alves](https://linkedin.com/in/renat0w0)
+3. Commit (`git commit -m "feat: adiciona minha feature"`)
 
-## ⭐ Mostre seu apoio
+4. Push (`git push origin feature/minha-feature`)Renato Alves — [@renat0w0](https://github.com/renat0w0)
 
-Se este projeto foi útil para você, dê uma ⭐️!
+5. Abra um Pull Request
+
+## ⭐ Apoie
+
+## 📄 Licença
+
+Se este projeto te ajudou, deixe uma estrela no repositório.
+
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
 
 ---
 
-**Desenvolvido com ❤️ por Renato Alves**
+## 👤 Autor
+
+Desenvolvido com ❤️ por Renato Alves
+
+Renato Alves — [@renat0w0](https://github.com/renat0w0)
+
+## ⭐ Apoie
+
+Se este projeto te ajudou, deixe uma estrela no repositório.
+
+---
+
+Desenvolvido com ❤️ por Renato Alves
