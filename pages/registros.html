@@ -7,6 +7,14 @@
     <title>Registros - Controle de Ponto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
     <link rel="stylesheet" href="../style.css">
+    <style>
+        /* Estilo responsivo para filtros */
+        @media (max-width: 768px) {
+            .filter-grid-responsive {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <!--=============== HEADER ===============-->
@@ -93,9 +101,6 @@
                 <h1>📅 Registros de Ponto</h1>
                 <p>Visualize e gerencie seus registros de entrada e saída</p>
             </div>
-            <button onclick="exportarCSV()" class="btn btn-primary">
-                <i class="ri-download-fill"></i> Exportar CSV
-            </button>
         </div>
 
         <!-- Cards com estatísticas rápidas -->
@@ -116,16 +121,16 @@
                 <i class="ri-filter-line"></i> Filtrar por Período
             </h3>
             
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 180px;">
+            <div class="filter-grid-responsive" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
+                <div>
                     <label for="filtroDataInicio" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-color); font-weight: 500;">De:</label>
                     <input type="date" id="filtroDataInicio" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color, #e0e0e0); background: var(--body-color); color: var(--text-color);">
                 </div>
-                <div style="flex: 1; min-width: 180px;">
+                <div>
                     <label for="filtroDataFim" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-color); font-weight: 500;">Até:</label>
                     <input type="date" id="filtroDataFim" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color, #e0e0e0); background: var(--body-color); color: var(--text-color);">
                 </div>
-                <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                <div style="display: flex; gap: 0.5rem;">
                     <button onclick="aplicarFiltro()" class="btn btn-primary" style="padding: 0.6rem 1.5rem; white-space: nowrap;">
                         <i class="ri-search-line"></i> Buscar
                     </button>
@@ -139,6 +144,13 @@
         <!-- Tabela de Registros -->
         <div id="registrosTabela"></div>
 
+        <!-- Botão Exportar CSV no final -->
+        <div style="margin-top: 2rem; text-align: center;">
+            <button onclick="exportarCSV()" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
+                <i class="ri-download-fill"></i> Exportar CSV
+            </button>
+        </div>
+
         <footer class="footer">
             <p>Desenvolvido por <a href="https://github.com/renat0w0" target="_blank">@renat0w0</a></p>
         </footer>
@@ -148,18 +160,29 @@
     <script src="../js/registros.js"></script>
     <script src="../js/sidebar.js"></script>
     <script>
-        // Auto-hide header ao rolar a página
+        // Auto-hide header com efeito de transparência suave
+        let lastScrollTop = 0;
+        const header = document.getElementById('header');
+        const scrollThreshold = 100;
+        
         window.addEventListener('scroll', () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const header = document.getElementById('header');
             
-            if (scrollTop < 100) {
-                header.style.transform = 'translateY(0)';
-                header.style.opacity = '1';
+            if (scrollTop < scrollThreshold) {
+                // Perto do topo - mostrar header com fade in suave
+                header.classList.remove('header--hidden');
+                header.classList.add('header--visible');
+            } else if (scrollTop > lastScrollTop) {
+                // Rolando para baixo - esconder com fade out
+                header.classList.remove('header--visible');
+                header.classList.add('header--hidden');
             } else {
-                header.style.transform = 'translateY(-100%)';
-                header.style.opacity = '0';
+                // Rolando para cima - mostrar com fade in
+                header.classList.remove('header--hidden');
+                header.classList.add('header--visible');
             }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
         });
     </script>
 </body>

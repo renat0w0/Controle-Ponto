@@ -559,23 +559,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Auto-hide header ao rolar a página
+    // Auto-hide header com efeito de transparência suave
     let lastScrollTop = 0;
     const header = document.getElementById('header');
+    const scrollThreshold = 100;
     
     window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         
-        if (scrollTop < 100) {
-            // Perto do topo (menos de 100px) - mostrar header
-            header.style.transform = 'translateY(0)';
-            header.style.opacity = '1';
+        if (scrollTop < scrollThreshold) {
+            // Perto do topo - mostrar header com fade in suave
+            header.classList.remove('header--hidden');
+            header.classList.add('header--visible');
+        } else if (scrollTop > lastScrollTop) {
+            // Rolando para baixo - esconder com fade out
+            header.classList.remove('header--visible');
+            header.classList.add('header--hidden');
         } else {
-            // Longe do topo - esconder header
-            header.style.transform = 'translateY(-100%)';
-            header.style.opacity = '0';
+            // Rolando para cima - mostrar com fade in
+            header.classList.remove('header--hidden');
+            header.classList.add('header--visible');
         }
         
-        lastScrollTop = scrollTop;
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
     });
 });

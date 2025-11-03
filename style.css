@@ -155,7 +155,17 @@ body.dark-theme {
   z-index: 1000;
   margin: .75rem;
   pointer-events: none;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header.header--hidden {
+  transform: translateY(-120%);
+  opacity: 0;
+}
+
+.header.header--visible {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .header__container {
