@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar CSV - Controle de Ponto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <!--=============== HEADER ===============-->
+    <header class="header" id="header">
+        <div class="header__container">
+            <button class="header__toggle" id="header-toggle">
+                <i class="ri-menu-line"></i>
+            </button>
+        </div>
+    </header>
+
+    <!--=============== SIDEBAR ===============-->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar__container">
+            <div class="sidebar__user">
+                <div class="sidebar__img" id="sidebarUserImg">
+                    <i class="ri-user-fill" style="font-size: 2rem; color: white; margin-top: 8px;"></i>
+                </div>
+    
+                <div class="sidebar__info">
+                    <h3 id="sidebarUserNome">Usuário</h3>
+                    <span id="sidebarUserEmail">Controle de Ponto</span>
+                </div>
+            </div>
+
+            <div class="sidebar__content">
+                <div>
+                    <h3 class="sidebar__title">PRINCIPAL</h3>
+
+                    <div class="sidebar__list">
+                        <a href="dashboard.html" class="sidebar__link">
+                            <i class="ri-dashboard-fill"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        
+                        <a href="registros.html" class="sidebar__link">
+                            <i class="ri-calendar-fill"></i>
+                            <span>Registros</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="sidebar__title">DADOS</h3>
+                    
+                    <div class="sidebar__list">
+                        <a href="importar.html" class="sidebar__link active-link">
+                            <i class="ri-upload-cloud-fill"></i>
+                            <span>Importar CSV</span>
+                        </a>
+
+                        <a href="api.html" class="sidebar__link">
+                            <i class="ri-refresh-fill"></i>
+                            <span>Sincronizar API</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar__actions">
+                <button>
+                    <i class="ri-moon-clear-fill sidebar__link sidebar__theme" id="theme-button">
+                        <span>Tema</span>
+                    </i>
+                </button>
+
+                <button class="sidebar__link" onclick="limparDados()">
+                    <i class="ri-delete-bin-fill"></i>
+                    <span>Limpar Dados</span>
+                </button>
+
+                <button class="sidebar__link sidebar__logout" onclick="logoutIDSec()">
+                    <i class="ri-logout-box-r-line"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!--=============== MAIN ===============-->
+    <main class="main container" id="main">
+        <div class="dashboard-header">
+            <div>
+                <h1>📤 Importar CSV</h1>
+                <p>Importe seus registros a partir de um arquivo CSV</p>
+            </div>
+        </div>
+
+        <div class="upload-area" id="dropZone">
+            <i class="ri-upload-cloud-2-fill"></i>
+            <h3>Arraste seu arquivo CSV aqui</h3>
+            <p>ou clique para selecionar</p>
+            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+        </div>
+
+        <div id="mensagem"></div>
+
+        <div id="preview" style="display: none;">
+            <h3>Preview dos Dados:</h3>
+            <div id="previewTabela"></div>
+            <button onclick="confirmarImportacao()" class="btn btn-primary">
+                Confirmar Importação
+            </button>
+        </div>
+
+        <footer class="footer">
+            <p>Desenvolvido por <a href="https://github.com/renat0w0" target="_blank">@renat0w0</a></p>
+        </footer>
+    </main>
+
+    <script src="../js/core.js"></script>
+    <script src="../js/importar.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // Auto-hide header ao rolar a página
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const header = document.getElementById('header');
+            
+            if (scrollTop < 100) {
+                header.style.transform = 'translateY(0)';
+                header.style.opacity = '1';
+            } else {
+                header.style.transform = 'translateY(-100%)';
+                header.style.opacity = '0';
+            }
+        });
+    </script>
+</body>
+</html>

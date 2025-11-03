@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Controle de Ponto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--body-color);
+        }
+        .login__container {
+            background: var(--container-color);
+            box-shadow: 0 4px 24px var(--shadow-color);
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            max-width: 400px;
+            width: 100%;
+        }
+        .login__title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--title-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .login__form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .login__input {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color, #e0e0e0);
+            background: var(--input-color, #f7f7f7);
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        .login__button {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: var(--first-color);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .login__button:hover {
+            background: var(--first-color-dark, #1a237e);
+        }
+        .login__icon {
+            font-size: 2.5rem;
+            color: var(--first-color);
+            display: block;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .login__error {
+            color: #d32f2f;
+            background: #ffebee;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login__container">
+        <span class="login__icon"><i class="ri-time-line"></i></span>
+        <h2 class="login__title">Entrar no Controle de Ponto</h2>
+        <form class="login__form" id="formLogin" autocomplete="off">
+            <input type="email" id="loginEmail" class="login__input" placeholder="Email" required>
+            <input type="password" id="loginSenha" class="login__input" placeholder="Senha" required>
+            <button type="submit" class="login__button" id="btnLogin">Entrar</button>
+        </form>
+        <div id="loginErro" class="login__error" style="display:none;"></div>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+    document.getElementById('formLogin').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const senha = document.getElementById('loginSenha').value;
+        const erroDiv = document.getElementById('loginErro');
+        const btnLogin = document.getElementById('btnLogin');
+        
+        erroDiv.style.display = 'none';
+        erroDiv.textContent = '';
+        btnLogin.textContent = 'Entrando...';
+        btnLogin.disabled = true;
+        
+        try {
+            const resultado = await fazerLogin(email, senha);
+            if (resultado.sucesso) {
+                btnLogin.textContent = 'Buscando dados...';
+                // Buscar e salvar dados do usuário
+                await buscarUsuarioLogado(email);
+                btnLogin.textContent = 'Redirecionando...';
+                window.location.href = 'pages/dashboard.html';
+            } else {
+                erroDiv.textContent = resultado.erro;
+                erroDiv.style.display = 'block';
+                btnLogin.textContent = 'Entrar';
+                btnLogin.disabled = false;
+            }
+        } catch (erro) {
+            erroDiv.textContent = 'Erro ao conectar: ' + erro.message;
+            erroDiv.style.display = 'block';
+            btnLogin.textContent = 'Entrar';
+            btnLogin.disabled = false;
+        }
+    });
+    </script>
+</body>
+</html>

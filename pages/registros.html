@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros - Controle de Ponto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <!--=============== HEADER ===============-->
+    <header class="header" id="header">
+        <div class="header__container">
+            <button class="header__toggle" id="header-toggle">
+                <i class="ri-menu-line"></i>
+            </button>
+        </div>
+    </header>
+
+    <!--=============== SIDEBAR ===============-->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar__container">
+            <div class="sidebar__user">
+                <div class="sidebar__img" id="sidebarUserImg">
+                    <i class="ri-user-fill" style="font-size: 2rem; color: white; margin-top: 8px;"></i>
+                </div>
+    
+                <div class="sidebar__info">
+                    <h3 id="sidebarUserNome">Usuário</h3>
+                    <span id="sidebarUserEmail">Controle de Ponto</span>
+                </div>
+            </div>
+
+            <div class="sidebar__content">
+                <div>
+                    <h3 class="sidebar__title">PRINCIPAL</h3>
+
+                    <div class="sidebar__list">
+                        <a href="dashboard.html" class="sidebar__link">
+                            <i class="ri-dashboard-fill"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        
+                        <a href="registros.html" class="sidebar__link active-link">
+                            <i class="ri-calendar-fill"></i>
+                            <span>Registros</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="sidebar__title">DADOS</h3>
+                    
+                    <div class="sidebar__list">
+                        <a href="importar.html" class="sidebar__link">
+                            <i class="ri-upload-cloud-fill"></i>
+                            <span>Importar CSV</span>
+                        </a>
+
+                        <a href="api.html" class="sidebar__link">
+                            <i class="ri-refresh-fill"></i>
+                            <span>Sincronizar API</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar__actions">
+                <button>
+                    <i class="ri-moon-clear-fill sidebar__link sidebar__theme" id="theme-button">
+                        <span>Tema</span>
+                    </i>
+                </button>
+
+                <button class="sidebar__link" onclick="limparDados()">
+                    <i class="ri-delete-bin-fill"></i>
+                    <span>Limpar Dados</span>
+                </button>
+
+                <button class="sidebar__link sidebar__logout" onclick="logoutIDSec()">
+                    <i class="ri-logout-box-r-line"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!--=============== MAIN ===============-->
+    <main class="main container" id="main">
+        <div class="dashboard-header">
+            <div>
+                <h1>📅 Registros de Ponto</h1>
+                <p>Visualize e gerencie seus registros de entrada e saída</p>
+            </div>
+            <button onclick="exportarCSV()" class="btn btn-primary">
+                <i class="ri-download-fill"></i> Exportar CSV
+            </button>
+        </div>
+
+        <!-- Cards com estatísticas rápidas -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="card" style="text-align: center;">
+                <h4 style="color: var(--text-color); margin-bottom: 0.5rem;">Total de Registros</h4>
+                <p style="font-size: 2rem; font-weight: bold; color: var(--first-color);" id="totalRegistros">0</p>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h4 style="color: var(--text-color); margin-bottom: 0.5rem;">Período Atual</h4>
+                <p style="font-size: 1.2rem; font-weight: bold; color: var(--title-color);" id="periodoAtual">-</p>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="margin: 0 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem; color: var(--title-color);">
+                <i class="ri-filter-line"></i> Filtrar por Período
+            </h3>
+            
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 180px;">
+                    <label for="filtroDataInicio" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-color); font-weight: 500;">De:</label>
+                    <input type="date" id="filtroDataInicio" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color, #e0e0e0); background: var(--body-color); color: var(--text-color);">
+                </div>
+                <div style="flex: 1; min-width: 180px;">
+                    <label for="filtroDataFim" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-color); font-weight: 500;">Até:</label>
+                    <input type="date" id="filtroDataFim" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color, #e0e0e0); background: var(--body-color); color: var(--text-color);">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                    <button onclick="aplicarFiltro()" class="btn btn-primary" style="padding: 0.6rem 1.5rem; white-space: nowrap;">
+                        <i class="ri-search-line"></i> Buscar
+                    </button>
+                    <button onclick="limparFiltro()" class="btn btn-secondary" style="padding: 0.6rem 1rem; white-space: nowrap;">
+                        <i class="ri-refresh-line"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Registros -->
+        <div id="registrosTabela"></div>
+
+        <footer class="footer">
+            <p>Desenvolvido por <a href="https://github.com/renat0w0" target="_blank">@renat0w0</a></p>
+        </footer>
+    </main>
+
+    <script src="../js/core.js"></script>
+    <script src="../js/registros.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script>
+        // Auto-hide header ao rolar a página
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const header = document.getElementById('header');
+            
+            if (scrollTop < 100) {
+                header.style.transform = 'translateY(0)';
+                header.style.opacity = '1';
+            } else {
+                header.style.transform = 'translateY(-100%)';
+                header.style.opacity = '0';
+            }
+        });
+    </script>
+</body>
+</html>
