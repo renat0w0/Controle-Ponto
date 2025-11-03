@@ -4,6 +4,50 @@ let chartBarras = null;
 let chartLinha = null;
 let periodoAtual = 7;
 
+// Funções para salvar/carregar filtro
+function salvarFiltro() {
+    const dataInicio = document.getElementById('dataInicio').value;
+    const dataFim = document.getElementById('dataFim').value;
+    
+    const filtro = {
+        dataInicio,
+        dataFim,
+        periodoAtual
+    };
+    
+    console.log('💾 Filtro salvo:', filtro);
+    localStorage.setItem('dashboardFiltro', JSON.stringify(filtro));
+}
+
+function carregarFiltro() {
+    const filtroSalvo = localStorage.getItem('dashboardFiltro');
+    if (!filtroSalvo) return false;
+    
+    try {
+        const filtro = JSON.parse(filtroSalvo);
+        
+        console.log('📥 Filtro carregado:', filtro);
+        
+        // Restaurar valores dos inputs
+        if (filtro.dataInicio && document.getElementById('dataInicio')) {
+            document.getElementById('dataInicio').value = filtro.dataInicio;
+        }
+        if (filtro.dataFim && document.getElementById('dataFim')) {
+            document.getElementById('dataFim').value = filtro.dataFim;
+        }
+        
+        // Restaurar período
+        if (filtro.periodoAtual !== undefined) {
+            periodoAtual = filtro.periodoAtual;
+        }
+        
+        return true;
+    } catch (e) {
+        console.error('Erro ao carregar filtro:', e);
+        return false;
+    }
+}
+
 function filtrarDadosPorPeriodo() {
     const registros = carregarDados();
     const hoje = new Date();
@@ -442,6 +486,7 @@ function aplicarFiltroPersonalizado() {
     // Definir período personalizado
     periodoAtual = { inicio: dataInicio, fim: dataFim };
     
+    salvarFiltro(); // Salvar filtro personalizado
     atualizarDashboard();
 }
 
@@ -459,6 +504,7 @@ function aplicarFiltroData() {
     }
     
     periodoAtual = { inicio: dataInicio, fim: dataFim };
+    salvarFiltro(); // Salvar filtro
     atualizarDashboard();
 }
 
@@ -467,6 +513,7 @@ function limparFiltroData() {
     const hoje = new Date();
     document.getElementById('dataFim').valueAsDate = hoje;
     periodoAtual = 7;
+    salvarFiltro(); // Salvar filtro limpo
     atualizarDashboard();
 }
 
@@ -475,11 +522,16 @@ window.limparFiltroData = limparFiltroData;
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // Definir data de hoje no campo "até"
-    const hoje = new Date();
-    const dataFimInput = document.getElementById('dataFim');
-    if (dataFimInput) {
-        dataFimInput.valueAsDate = hoje;
+    // Carregar filtro salvo primeiro
+    const filtroCarregado = carregarFiltro();
+    
+    // Se não houver filtro salvo, definir data de hoje no campo "até"
+    if (!filtroCarregado) {
+        const hoje = new Date();
+        const dataFimInput = document.getElementById('dataFim');
+        if (dataFimInput) {
+            dataFimInput.valueAsDate = hoje;
+        }
     }
     
     // Atualizar dashboard
@@ -494,6 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const periodo = e.target.dataset.periodo;
             periodoAtual = periodo === 'tudo' ? null : (periodo === 'mes' ? 'mes' : parseInt(periodo));
             
+            salvarFiltro(); // Salvar quando mudar de filtro
             atualizarDashboard();
         });
     });
