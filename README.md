@@ -114,7 +114,7 @@ Aplicação web moderna para controle de ponto eletrônico, com login, importaç
 
 ```text├── app.js                   # (Legado) Lógica consolidada/experimental
 
-Controle-Ponto/├── js/
+Controle-Ponthttps://chatgpt.com/c/69089e44-b588-8325-bcdd-0abb1362d739o/├── js/
 
 ├── index.html               # Redireciona para a aplicação (login/dashboard)│   ├── core.js             # Utilidades, cálculos, storage, proteção de rotas
 

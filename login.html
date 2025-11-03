@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Controle de Ponto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
     <style>
         body {
             min-height: 100vh;
@@ -84,7 +84,7 @@
         </form>
         <div id="loginErro" class="login__error" style="display:none;"></div>
     </div>
-    <script src="js/api.js"></script>
+    <script src="./js/api.js"></script>
     <script>
     document.getElementById('formLogin').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -105,7 +105,7 @@
                 // Buscar e salvar dados do usuário
                 await buscarUsuarioLogado(email);
                 btnLogin.textContent = 'Redirecionando...';
-                window.location.href = 'pages/dashboard.html';
+                window.location.href = './pages/dashboard.html';
             } else {
                 erroDiv.textContent = resultado.erro;
                 erroDiv.style.display = 'block';
