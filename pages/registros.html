@@ -95,7 +95,7 @@
     <main class="main container" id="main">
         <div class="dashboard-header">
             <div>
-                <h1>📅 Registros de Ponto</h1>
+                <h1>Registros de Ponto</h1>
                 <p>Visualize e gerencie seus registros de entrada e saída</p>
             </div>
         </div>
@@ -157,26 +157,21 @@
     <script src="../js/registros.js"></script>
     <script src="../js/sidebar.js"></script>
     <script>
-        // Auto-hide header com efeito de transparência suave
-        let lastScrollTop = 0;
+        // Auto-hide header - aparece apenas no topo
         const header = document.getElementById('header');
-        const scrollThreshold = 100;
+        const scrollThreshold = 50;
         
         window.addEventListener('scroll', () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
             if (scrollTop < scrollThreshold) {
-                // Perto do topo - mostrar header com fade in suave
+                // No topo - mostrar header
                 header.classList.remove('header--hidden');
                 header.classList.add('header--visible');
-            } else if (scrollTop > lastScrollTop) {
-                // Rolando para baixo - esconder com fade out
+            } else {
+                // Scrollou para baixo - esconder header
                 header.classList.remove('header--visible');
                 header.classList.add('header--hidden');
-            } else {
-                // Rolando para cima - mostrar com fade in
-                header.classList.remove('header--hidden');
-                header.classList.add('header--visible');
             }
             
             lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;

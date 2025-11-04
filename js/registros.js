@@ -89,7 +89,7 @@ function renderizarRegistros(registros) {
                         ℹ️ Nenhum registro encontrado.
                     </p>
                     <p style="color: var(--text-color); opacity: 0.7; margin-top: 0.5rem;">
-                        Vá em "Sincronizar API" para importar seus registros.
+                        Vá em "Gerar Dados" para importar seus registros.
                     </p>
                 </div>
             </div>
