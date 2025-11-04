@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
     <link rel="stylesheet" href="../style.css">
     <style>
-        /* Estilo responsivo para filtros */
         @media (max-width: 768px) {
             .filter-grid-responsive {
                 grid-template-columns: 1fr !important;
@@ -17,7 +16,7 @@
     </style>
 </head>
 <body>
-    <!--=============== HEADER ===============-->
+    <!-- Header -->
     <header class="header" id="header">
         <div class="header__container">
             <button class="header__toggle" id="header-toggle">
@@ -29,7 +28,7 @@
         </div>
     </header>
 
-    <!--=============== SIDEBAR ===============-->
+    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar__container">
             <div class="sidebar__user">
@@ -91,7 +90,7 @@
         </div>
     </nav>
 
-    <!--=============== MAIN ===============-->
+    <!-- Main -->
     <main class="main container" id="main">
         <div class="dashboard-header">
             <div>
@@ -100,7 +99,7 @@
             </div>
         </div>
 
-        <!-- Cards com estatísticas rápidas -->
+        <!-- Cards estatísticas -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
             <div class="card" style="text-align: center;">
                 <h4 style="color: var(--text-color); margin-bottom: 0.5rem;">Total de Registros</h4>
@@ -138,10 +137,10 @@
             </div>
         </div>
 
-        <!-- Tabela de Registros -->
+        <!-- Tabela -->
         <div id="registrosTabela"></div>
 
-        <!-- Botão Exportar CSV no final -->
+        <!-- Exportar -->
         <div style="margin-top: 2rem; text-align: center;">
             <button onclick="exportarCSV()" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
                 <i class="ri-download-fill"></i> Exportar CSV
@@ -157,7 +156,7 @@
     <script src="../js/registros.js"></script>
     <script src="../js/sidebar.js"></script>
     <script>
-        // Auto-hide header - aparece apenas no topo
+        // Auto-hide header
         const header = document.getElementById('header');
         const scrollThreshold = 50;
         
@@ -165,11 +164,9 @@
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
             if (scrollTop < scrollThreshold) {
-                // No topo - mostrar header
                 header.classList.remove('header--hidden');
                 header.classList.add('header--visible');
             } else {
-                // Scrollou para baixo - esconder header
                 header.classList.remove('header--visible');
                 header.classList.add('header--hidden');
             }
@@ -178,7 +175,7 @@
         });
     </script>
 
-    <!--=============== MODAL ===============-->
+    <!-- Modal -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal">
             <div class="modal__header">

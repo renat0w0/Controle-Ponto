@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-    <!--=============== HEADER ===============-->
-    <header class="header" id="header">
+    <!-- Header -->
+    <header class="header header--visible" id="header">
         <div class="header__container">
             <button class="header__toggle" id="header-toggle">
                 <i class="ri-menu-line"></i>
@@ -21,7 +21,7 @@
         </div>
     </header>
 
-    <!--=============== SIDEBAR ===============-->
+    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar__container">
             <div class="sidebar__user">
@@ -83,7 +83,7 @@
         </div>
     </nav>
 
-    <!--=============== MAIN ===============-->
+    <!-- Main -->
     <main class="main container" id="main">
         <div class="dashboard-header">
             <div>
@@ -179,7 +179,7 @@
         </footer>
     </main>
 
-    <!--=============== MODAL ===============-->
+    <!-- Modal -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal">
             <div class="modal__header">
@@ -208,5 +208,24 @@
     <script src="../js/core.js"></script>
     <script src="../js/dashboard.js"></script>
     <script src="../js/sidebar.js"></script>
+    <script>
+        // Auto-hide header
+        const header = document.getElementById('header');
+        const scrollThreshold = 50;
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop < scrollThreshold) {
+                header.classList.remove('header--hidden');
+                header.classList.add('header--visible');
+            } else {
+                header.classList.remove('header--visible');
+                header.classList.add('header--hidden');
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+    </script>
 </body>
 </html>

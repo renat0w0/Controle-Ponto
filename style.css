@@ -1456,16 +1456,14 @@ body:not(.dark-theme) .search-suggestions {
 }
 
 .modal__button--confirm {
-    background: linear-gradient(135deg,
-        hsl(var(--hue), var(--sat), 60%),
-        hsl(var(--hue), var(--sat), 50%));
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: #fff;
-    box-shadow: 0 4px 12px hsla(var(--hue), var(--sat), 50%, 0.3);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .modal__button--confirm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px hsla(var(--hue), var(--sat), 50%, 0.4);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 
 .modal__button--confirm:active {
