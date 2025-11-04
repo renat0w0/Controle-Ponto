@@ -432,15 +432,6 @@ body:not(.dark-theme) .sidebar__link.active-link {
   cursor: pointer;
 }
 
-.sidebar__logout {
-  transition: background-color 0.4s, color 0.4s;
-}
-
-.sidebar__logout:hover {
-  background-color: var(--first-color);
-  color: #fff;
-}
-
 .sidebar__theme {
   width: 100%;
   font-size: 1.25rem;
