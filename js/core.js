@@ -92,12 +92,77 @@ function removerRegistro(data, entrada) {
 }
 
 function limparDados() {
-    if (confirm('⚠️ Tem certeza que deseja limpar TODOS os registros? Esta ação não pode ser desfeita!')) {
-        localStorage.removeItem('registros');
-        alert('✅ Todos os registros foram removidos!');
-        window.location.reload();
-    }
+    abrirModal(
+        'Tem certeza que deseja limpar todos os dados?',
+        'Esta ação não pode ser desfeita e todos os registros serão removidos permanentemente.',
+        () => {
+            localStorage.removeItem('registros');
+            fecharModal();
+            
+            // Mostrar notificação de sucesso
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:1rem 1.5rem;border-radius:12px;box-shadow:0 8px 16px rgba(0,0,0,0.2);z-index:10001;animation:slideIn 0.3s ease;';
+            overlay.innerHTML = '<i class="ri-check-line" style="margin-right:8px;"></i>Dados removidos com sucesso!';
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => {
+                overlay.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => window.location.reload(), 300);
+            }, 2000);
+        }
+    );
 }
+
+// Funções do Modal
+function abrirModal(titulo, mensagem, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    
+    if (!modal) {
+        console.error('Modal não encontrado! Certifique-se de que o HTML do modal está na página.');
+        // Fallback para o confirm padrão
+        if (confirm(mensagem)) {
+            onConfirm();
+        }
+        return;
+    }
+    
+    const modalTitle = modal.querySelector('.modal__title');
+    const modalMessage = modal.querySelector('.modal__message');
+    const confirmBtn = modal.querySelector('#modalConfirmBtn');
+    
+    modalTitle.textContent = titulo;
+    modalMessage.textContent = mensagem;
+    
+    // Remover listeners antigos e adicionar novo
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    newConfirmBtn.addEventListener('click', onConfirm);
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModal() {
+    const modal = document.getElementById('confirmModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Fechar modal ao clicar fora
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('confirmModal');
+    if (e.target === modal) {
+        fecharModal();
+    }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        fecharModal();
+    }
+});
+
 
 // Exportar CSV
 function exportarCSV() {

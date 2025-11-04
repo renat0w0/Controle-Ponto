@@ -23,6 +23,9 @@
             <button class="header__toggle" id="header-toggle">
                 <i class="ri-menu-line"></i>
             </button>
+            <button class="header__theme" id="theme-button" title="Alternar tema">
+                <i class="ri-moon-clear-fill"></i>
+            </button>
         </div>
     </header>
 
@@ -75,12 +78,6 @@
             </div>
 
             <div class="sidebar__actions">
-                <button>
-                    <i class="ri-moon-clear-fill sidebar__link sidebar__theme" id="theme-button">
-                        <span>Tema</span>
-                    </i>
-                </button>
-
                 <button class="sidebar__link" onclick="limparDados()">
                     <i class="ri-delete-bin-fill"></i>
                     <span>Limpar Dados</span>
@@ -185,5 +182,30 @@
             lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
         });
     </script>
+
+    <!--=============== MODAL ===============-->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal__header">
+                <div class="modal__icon">
+                    <i class="ri-alert-line"></i>
+                </div>
+                <h3 class="modal__title">Confirmar ação</h3>
+            </div>
+            <p class="modal__message" id="modalMessage">
+                Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.
+            </p>
+            <div class="modal__actions">
+                <button class="modal__button modal__button--cancel" onclick="fecharModal()">
+                    <i class="ri-close-line"></i>
+                    Cancelar
+                </button>
+                <button class="modal__button modal__button--confirm" id="modalConfirmBtn">
+                    <i class="ri-check-line"></i>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

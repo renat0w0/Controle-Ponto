@@ -15,6 +15,9 @@
             <button class="header__toggle" id="header-toggle">
                 <i class="ri-menu-line"></i>
             </button>
+            <button class="header__theme" id="theme-button" title="Alternar tema">
+                <i class="ri-moon-clear-fill"></i>
+            </button>
         </div>
     </header>
 
@@ -67,12 +70,6 @@
             </div>
 
             <div class="sidebar__actions">
-                <button>
-                    <i class="ri-moon-clear-fill sidebar__link sidebar__theme" id="theme-button">
-                        <span>Tema</span>
-                    </i>
-                </button>
-
                 <button class="sidebar__link" onclick="limparDados()">
                     <i class="ri-delete-bin-fill"></i>
                     <span>Limpar Dados</span>
@@ -91,13 +88,41 @@
         <div class="dashboard-header">
             <div>
                 <h1>🔄 Gerar Dados</h1>
-                <p>Busque seus registros do IDSecure selecionando o período</p>
+                <p>Busque registros de ponto de qualquer pessoa cadastrada no IDSecure</p>
+            </div>
+        </div>
+
+        <!-- Seção de Busca de Pessoa -->
+        <div style="background: var(--body-color); padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); margin-bottom: 20px;">
+            <h3 style="margin-bottom: 20px; color: var(--title-color);">👤 Selecione a Pessoa</h3>
+            
+            <div class="form-group" style="position: relative;">
+                <label for="personSearch">Buscar por nome:</label>
+                <input 
+                    type="text" 
+                    id="personSearch" 
+                    placeholder="Digite o nome para buscar..."
+                    autocomplete="off"
+                    style="width: 100%;"
+                >
+                <div id="personSuggestions" class="search-suggestions" style="display: none;"></div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="personId">ID da Pessoa Selecionada:</label>
+                <input 
+                    type="text" 
+                    id="personId" 
+                    readonly 
+                    placeholder="Busque e selecione uma pessoa acima"
+                    style="width: 100%; background: var(--table-row-alt); cursor: not-allowed;"
+                >
             </div>
         </div>
 
         <!-- Seção de Sincronização -->
         <div style="background: var(--body-color); padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); margin-bottom: 30px;">
-            <h3 style="margin-bottom: 20px; color: var(--title-color);">Selecione o Período</h3>
+            <h3 style="margin-bottom: 20px; color: var(--title-color);">📅 Selecione o Período</h3>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <div class="form-group">
@@ -152,5 +177,30 @@
             lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
         });
     </script>
+
+    <!--=============== MODAL ===============-->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal__header">
+                <div class="modal__icon">
+                    <i class="ri-alert-line"></i>
+                </div>
+                <h3 class="modal__title">Confirmar ação</h3>
+            </div>
+            <p class="modal__message" id="modalMessage">
+                Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.
+            </p>
+            <div class="modal__actions">
+                <button class="modal__button modal__button--cancel" onclick="fecharModal()">
+                    <i class="ri-close-line"></i>
+                    Cancelar
+                </button>
+                <button class="modal__button modal__button--confirm" id="modalConfirmBtn">
+                    <i class="ri-check-line"></i>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -88,14 +88,60 @@ async function buscarPessoas(query) {
 }
 
 async function buscarUsuarioLogado(email) {
+    // Tentar primeiro pela API /me que retorna dados completos do operador logado
+    try {
+        console.log('🔍 Buscando dados do operador via /api/v1/operators/me');
+        
+        const response = await fetch('https://main.idsecure.com.br:5000/api/v1/operators/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${tokenAPI}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const dados = await response.json();
+            console.log('👤 Dados completos do operador:', dados);
+            
+            // Dados podem estar em dados.data ou direto em dados
+            const operador = dados.data || dados;
+            
+            // Salvar informações no localStorage
+            localStorage.setItem('usuarioNome', operador.name || 'Usuário');
+            localStorage.setItem('usuarioId', operador.id || operador.personId || '');
+            localStorage.setItem('usuarioEmail', operador.email || email);
+            
+            // Verificar se tem foto no personPhoto
+            if (operador.personPhoto?.photo) {
+                localStorage.setItem('usuarioFoto', operador.personPhoto.photo);
+                console.log('✅ Foto encontrada em personPhoto.photo');
+            } else if (operador.photo) {
+                localStorage.setItem('usuarioFoto', operador.photo);
+                console.log('✅ Foto encontrada em photo');
+            } else {
+                console.log('⚠️ Nenhuma foto disponível no perfil');
+                localStorage.removeItem('usuarioFoto');
+            }
+            
+            return operador;
+        } else {
+            console.log('⚠️ Erro ao buscar via /me, tentando busca por nome...');
+        }
+    } catch (erro) {
+        console.error('❌ Erro ao buscar via /me:', erro);
+    }
+    
+    // Fallback: buscar por email/nome
     const pessoas = await buscarPessoas(email.split('@')[0]);
     if (pessoas.length > 0) {
         const pessoa = pessoas[0];
-        console.log('👤 Dados do usuário:', pessoa);
+        console.log('👤 Dados do usuário (fallback):', pessoa);
         console.log('📸 Foto disponível:', pessoa.photo ? 'SIM' : 'NÃO');
         
-        // Salvar nome e foto no localStorage
+        // Salvar nome, foto e ID no localStorage
         localStorage.setItem('usuarioNome', pessoa.name || 'Usuário');
+        localStorage.setItem('usuarioId', pessoa.id || pessoa.personId || '');
         if (pessoa.photo) {
             localStorage.setItem('usuarioFoto', pessoa.photo);
             console.log('✅ Foto salva no localStorage');
@@ -311,6 +357,15 @@ function configurarBuscaPessoas() {
         }, 500);
     });
     
+    // Abrir dropdown ao clicar no input
+    searchInput.addEventListener('click', () => {
+        searchInput.select(); // Seleciona o texto para facilitar edição
+        if (searchInput.value.trim().length >= 3) {
+            // Se já tem texto, dispara a busca
+            searchInput.dispatchEvent(new Event('input'));
+        }
+    });
+    
     // Fechar sugestões ao clicar fora
     document.addEventListener('click', (e) => {
         if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
@@ -335,10 +390,11 @@ window.sincronizarDados = sincronizarDados;
 window.loginAPISimplificado = loginAPISimplificado;
 window.limparCredenciais = limparCredenciais;
 
-// Nova função para sincronizar registros do usuário logado
+// Nova função para sincronizar registros de qualquer pessoa
 window.sincronizarRegistrosUsuario = async function() {
     const dataInicio = document.getElementById('dataInicio')?.value;
     const dataFim = document.getElementById('dataFim')?.value;
+    const personId = document.getElementById('personId')?.value;
     const mensagemDiv = document.getElementById('mensagemAPI');
     const btnTexto = document.getElementById('btnSyncTexto');
     
@@ -347,9 +403,14 @@ window.sincronizarRegistrosUsuario = async function() {
         return;
     }
     
-    // Verificar se há email salvo
-    const emailSalvo = localStorage.getItem('apiEmail');
-    if (!emailSalvo) {
+    if (!personId) {
+        mensagemDiv.innerHTML = '<div class="alert alert-error">⚠️ Selecione uma pessoa primeiro!</div>';
+        return;
+    }
+    
+    // Verificar se há token salvo
+    const tokenSalvo = localStorage.getItem('apiToken');
+    if (!tokenSalvo) {
         mensagemDiv.innerHTML = '<div class="alert alert-error">❌ Sessão expirada. Faça login novamente.</div>';
         setTimeout(() => {
             window.location.href = '../login.html';
@@ -357,23 +418,12 @@ window.sincronizarRegistrosUsuario = async function() {
         return;
     }
     
-    btnTexto.innerHTML = '<span class="loading"></span> Buscando dados do usuário...';
+    btnTexto.innerHTML = '<span class="loading"></span> Sincronizando registros...';
     mensagemDiv.innerHTML = '';
     
     try {
-        // Buscar dados do usuário logado
-        const pessoa = await buscarUsuarioLogado(emailSalvo);
-        
-        if (!pessoa) {
-            mensagemDiv.innerHTML = '<div class="alert alert-error">❌ Erro ao buscar dados do usuário</div>';
-            btnTexto.innerHTML = '🔄 Sincronizar Registros';
-            return;
-        }
-        
-        btnTexto.innerHTML = '<span class="loading"></span> Sincronizando registros...';
-        
-        // Buscar registros do período selecionado
-        const registros = await buscarRegistros(pessoa.id, dataInicio, dataFim);
+        // Buscar registros do período selecionado usando o ID da pessoa selecionada
+        const registros = await buscarRegistros(personId, dataInicio, dataFim);
         
         if (registros && registros.length > 0) {
             // Agrupar registros
@@ -416,6 +466,122 @@ window.sincronizarRegistrosUsuario = async function() {
     }
 };
 
+// Configurar busca de pessoas na página de API
+function configurarBuscaPessoasNaPagina() {
+    const searchInput = document.getElementById('personSearch');
+    const suggestionsDiv = document.getElementById('personSuggestions');
+    
+    if (!searchInput || !suggestionsDiv) {
+        console.log('⚠️ Elementos de busca não encontrados na página');
+        return;
+    }
+    
+    console.log('✅ Configurando busca de pessoas na página');
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 3) {
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        // Mostrar "buscando..."
+        suggestionsDiv.innerHTML = '<div class="search-loading">Buscando...</div>';
+        suggestionsDiv.style.display = 'block';
+        
+        searchTimeout = setTimeout(async () => {
+            const pessoas = await buscarPessoas(query);
+            
+            console.log('👥 Pessoas encontradas:', pessoas.length);
+            
+            if (pessoas.length > 0) {
+                suggestionsDiv.innerHTML = pessoas.map(p => {
+                    const pessoaId = p.id || p.personId || 'N/A';
+                    const pessoaNome = p.name || p.fullName || 'Nome não disponível';
+                    const pessoaDoc = p.document ? ` • CPF: ${p.document}` : '';
+                    
+                    console.log('  📋 Pessoa:', { id: pessoaId, name: pessoaNome });
+                    
+                    return `
+                        <div class="search-suggestion-item" onclick="selecionarPessoaNaPagina('${pessoaId}', '${pessoaNome.replace(/'/g, "\\'")}')">
+                            <div class="name">${pessoaNome}</div>
+                            <div class="details">ID: ${pessoaId}${pessoaDoc}</div>
+                        </div>
+                    `;
+                }).join('');
+                suggestionsDiv.style.display = 'block';
+            } else {
+                suggestionsDiv.innerHTML = '<div class="search-empty">❌ Nenhuma pessoa encontrada</div>';
+                suggestionsDiv.style.display = 'block';
+            }
+        }, 500);
+    });
+    
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+// Função para selecionar pessoa na página de API
+window.selecionarPessoaNaPagina = function(id, nome) {
+    console.log('🎯 Pessoa selecionada na página:', id, nome);
+    const personIdField = document.getElementById('personId');
+    const personSearchField = document.getElementById('personSearch');
+    const personSuggestionsField = document.getElementById('personSuggestions');
+    
+    if (personIdField) personIdField.value = id;
+    if (personSearchField) personSearchField.value = nome;
+    if (personSuggestionsField) personSuggestionsField.style.display = 'none';
+};
+
+// Preencher automaticamente com o usuário logado
+async function preencherUsuarioLogado() {
+    const usuarioNome = localStorage.getItem('usuarioNome');
+    const usuarioId = localStorage.getItem('usuarioId');
+    const emailSalvo = localStorage.getItem('apiEmail');
+    
+    console.log('📋 Dados salvos:', { usuarioNome, usuarioId, emailSalvo });
+    
+    // Se já tiver ID salvo, usar
+    if (usuarioId && usuarioNome) {
+        console.log('✅ Usando dados salvos do usuário');
+        const personIdField = document.getElementById('personId');
+        const personSearchField = document.getElementById('personSearch');
+        
+        if (personIdField) personIdField.value = usuarioId;
+        if (personSearchField) personSearchField.value = usuarioNome;
+        return;
+    }
+    
+    // Caso contrário, buscar da API
+    if (emailSalvo) {
+        console.log('🔍 Buscando dados do usuário da API...');
+        const pessoa = await buscarUsuarioLogado(emailSalvo);
+        
+        if (pessoa) {
+            const pessoaId = pessoa.id || pessoa.personId;
+            const pessoaNome = pessoa.name || pessoa.fullName;
+            
+            console.log('✅ Dados do usuário buscados:', { pessoaId, pessoaNome });
+            
+            const personIdField = document.getElementById('personId');
+            const personSearchField = document.getElementById('personSearch');
+            
+            if (personIdField) personIdField.value = pessoaId;
+            if (personSearchField) personSearchField.value = pessoaNome;
+        }
+    }
+}
+
 // Configurar formulário de login
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar token salvo
@@ -437,6 +603,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loginStatus) loginStatus.style.display = 'none';
         
         configurarBuscaPessoas();
+    }
+    
+    // Configurar busca de pessoas na página de API
+    const personSearchField = document.getElementById('personSearch');
+    if (personSearchField && tokenSalvo) {
+        configurarBuscaPessoasNaPagina();
+        
+        // Preencher automaticamente com o usuário logado
+        preencherUsuarioLogado();
     }
     
     // Configurar datas padrão (apenas se os campos existirem)

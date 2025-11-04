@@ -348,4 +348,4 @@ Se este projeto te ajudou, deixe uma estrela no repositório.
 
 ---
 
-Desenvolvido com ❤️ por Renato Alves
+Desenvolvido com 🩵 por Renato Alves
