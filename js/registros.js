@@ -3,6 +3,10 @@
 // Variável para armazenar registros filtrados
 let registrosFiltrados = null;
 
+// Paginação
+let paginaAtual = 1;
+const ITENS_POR_PAGINA = 50;
+
 function removerRegistroEAtualizar(data, entrada) {
     if (confirm('⚠️ Deseja remover este registro?')) {
         removerRegistro(data, entrada);
@@ -62,6 +66,9 @@ function aplicarFiltro() {
         return reg.data >= dataInicio && reg.data <= dataFim;
     });
     
+    // Resetar para página 1
+    paginaAtual = 1;
+    
     // Atualizar tabela com registros filtrados
     renderizarRegistros(registrosFiltrados);
 }
@@ -71,6 +78,7 @@ function limparFiltro() {
     document.getElementById('filtroDataInicio').value = '';
     document.getElementById('filtroDataFim').value = '';
     registrosFiltrados = null;
+    paginaAtual = 1; // Resetar página
     atualizarTabela();
 }
 
@@ -106,6 +114,12 @@ function renderizarRegistros(registros) {
     // Ordenar por data (mais recente primeiro)
     registrosAgrupados.sort((a, b) => new Date(b.data) - new Date(a.data));
     
+    // Paginação
+    const totalPaginas = Math.ceil(registrosAgrupados.length / ITENS_POR_PAGINA);
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const fim = inicio + ITENS_POR_PAGINA;
+    const registrosPaginados = registrosAgrupados.slice(inicio, fim);
+    
     // Calcular período
     const datas = registrosAgrupados.map(r => r.data).sort();
     const dataInicio = datas[0];
@@ -118,7 +132,7 @@ function renderizarRegistros(registros) {
     html += '<th>Data</th><th>Dia</th><th>Entrada</th><th>Saída</th><th>Total</th><th>Hora Extra</th>';
     html += '</tr></thead><tbody>';
     
-    registrosAgrupados.forEach(reg => {
+    registrosPaginados.forEach(reg => {
         const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
         const extrasMin = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
         const diaSemana = obterDiaDaSemana(reg.data);
@@ -151,7 +165,49 @@ function renderizarRegistros(registros) {
     });
     
     html += '</tbody></table>';
-    html += '</div></div>';
+    html += '</div>';
+    
+    // Adicionar controles de paginação
+    if (totalPaginas > 1) {
+        html += '<div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid var(--border-color);">';
+        html += `<div class="pagination-info" style="color: var(--text-color); font-size: 0.9rem;">Página ${paginaAtual} de ${totalPaginas} • Mostrando ${registrosPaginados.length} de ${registrosAgrupados.length} registros</div>`;
+        html += '<div class="pagination-buttons" style="display: flex; gap: 0.75rem; align-items: center;">';
+        
+        // Botão Anterior
+        if (paginaAtual > 1) {
+            html += `<button onclick="mudarPagina(${paginaAtual - 1})" class="btn btn-primary btn-pagination"><i class="ri-arrow-left-s-line"></i></button>`;
+        } else {
+            html += `<button disabled class="btn btn-pagination" style="background: var(--border-color); color: var(--text-color-light); cursor: not-allowed; opacity: 0.5;"><i class="ri-arrow-left-s-line"></i></button>`;
+        }
+        
+        // Números de página (mostrar até 5 páginas)
+        const maxBotoes = 5;
+        let inicioRange = Math.max(1, paginaAtual - Math.floor(maxBotoes / 2));
+        let fimRange = Math.min(totalPaginas, inicioRange + maxBotoes - 1);
+        
+        if (fimRange - inicioRange < maxBotoes - 1) {
+            inicioRange = Math.max(1, fimRange - maxBotoes + 1);
+        }
+        
+        for (let i = inicioRange; i <= fimRange; i++) {
+            if (i === paginaAtual) {
+                html += `<button class="btn btn-primary btn-pagination active">${i}</button>`;
+            } else {
+                html += `<button onclick="mudarPagina(${i})" class="btn btn-pagination" style="background: var(--body-color); color: var(--text-color); border: 1px solid var(--border-color);">${i}</button>`;
+            }
+        }
+        
+        // Botão Próximo
+        if (paginaAtual < totalPaginas) {
+            html += `<button onclick="mudarPagina(${paginaAtual + 1})" class="btn btn-primary btn-pagination"><i class="ri-arrow-right-s-line"></i></button>`;
+        } else {
+            html += `<button disabled class="btn btn-pagination" style="background: var(--border-color); color: var(--text-color-light); cursor: not-allowed; opacity: 0.5;"><i class="ri-arrow-right-s-line"></i></button>`;
+        }
+        
+        html += '</div></div>';
+    }
+    
+    html += '</div>';
     tabelaDiv.innerHTML = html;
     
     // Atualizar estatísticas
@@ -176,6 +232,15 @@ function atualizarTabela() {
 window.adicionarRegistroManual = adicionarRegistroManual;
 window.aplicarFiltro = aplicarFiltro;
 window.limparFiltro = limparFiltro;
+
+// Função para mudar de página
+function mudarPagina(novaPagina) {
+    paginaAtual = novaPagina;
+    atualizarTabela();
+    // Scroll suave para o topo da página
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.mudarPagina = mudarPagina;
 
 // Carregar tabela ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
@@ -202,3 +267,127 @@ document.addEventListener('DOMContentLoaded', () => {
     registrosFiltrados = null;
     atualizarTabela();
 });
+
+// Função para exportar PDF
+function exportarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const registros = registrosFiltrados || carregarDados();
+    
+    if (registros.length === 0) {
+        alert('Não há registros para exportar!');
+        return;
+    }
+    
+    // Agrupar registros por data usando a mesma função da tabela
+    const registrosAgrupados = agruparRegistrosPorData(registros);
+    
+    // Ordenar por data
+    registrosAgrupados.sort((a, b) => a.data.localeCompare(b.data));
+    
+    // Preparar dados para a tabela
+    const tableData = [];
+    let totalHoras = 0;
+    let totalExtras = 0;
+    
+    registrosAgrupados.forEach(reg => {
+        // Calcular horas do dia
+        let horasDoDia = 0;
+        if (reg.entrada && reg.saida) {
+            const [hE, mE] = reg.entrada.split(':').map(Number);
+            const [hS, mS] = reg.saida.split(':').map(Number);
+            horasDoDia = (hS * 60 + mS - hE * 60 - mE) / 60;
+            totalHoras += horasDoDia;
+        }
+        
+        // Calcular hora extra
+        const extrasMin = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
+        const horasExtras = extrasMin / 60;
+        totalExtras += horasExtras;
+        
+        // Formatar data
+        const [ano, mes, dia] = reg.data.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        
+        // Dia da semana
+        const diaSemana = obterDiaDaSemana(reg.data);
+        
+        // Horários
+        const horarios = reg.entrada && reg.saida ? `${reg.entrada} - ${reg.saida}` : '-';
+        
+        // Formatar hora extra
+        let horaExtraStr = '-';
+        if (extrasMin > 0) {
+            horaExtraStr = `+${Math.floor(horasExtras)}h ${Math.round((horasExtras % 1) * 60)}min`;
+        } else if (extrasMin < 0) {
+            const abs = Math.abs(horasExtras);
+            horaExtraStr = `-${Math.floor(abs)}h ${Math.round((abs % 1) * 60)}min`;
+        }
+        
+        tableData.push([
+            dataFormatada,
+            diaSemana,
+            horarios,
+            horasDoDia > 0 ? `${Math.floor(horasDoDia)}h ${Math.round((horasDoDia % 1) * 60)}min` : '-',
+            horaExtraStr
+        ]);
+    });
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Relatório de Ponto', 14, 20);
+    
+    // Período
+    doc.setFontSize(11);
+    const dataInicio = document.getElementById('filtroDataInicio').value;
+    const dataFim = document.getElementById('filtroDataFim').value;
+    if (dataInicio && dataFim) {
+        const [aI, mI, dI] = dataInicio.split('-');
+        const [aF, mF, dF] = dataFim.split('-');
+        doc.text(`Período: ${dI}/${mI}/${aI} a ${dF}/${mF}/${aF}`, 14, 28);
+    } else {
+        doc.text(`Total de ${registros.length} registros`, 14, 28);
+    }
+    
+    // Tabela
+    doc.autoTable({
+        head: [['Data', 'Dia', 'Horários', 'Total', 'H. Extra']],
+        body: tableData,
+        startY: 35,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [59, 130, 246], fontStyle: 'bold' },
+        columnStyles: {
+            0: { cellWidth: 28 },
+            1: { cellWidth: 20 },
+            2: { cellWidth: 50 },
+            3: { cellWidth: 28 },
+            4: { cellWidth: 28, halign: 'center' }
+        }
+    });
+    
+    // Total
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total de Horas: ${Math.floor(totalHoras)}h ${Math.round((totalHoras % 1) * 60)}min`, 14, finalY);
+    
+    // Total de horas extras
+    if (totalExtras !== 0) {
+        const absExtras = Math.abs(totalExtras);
+        const sinal = totalExtras > 0 ? '+' : '-';
+        doc.text(`Total de Horas Extras: ${sinal}${Math.floor(absExtras)}h ${Math.round((absExtras % 1) * 60)}min`, 14, finalY + 7);
+    }
+    
+    // Footer
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, doc.internal.pageSize.height - 10);
+    
+    // Download
+    const nomeArquivo = `registros-ponto-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(nomeArquivo);
+    
+    console.log('📄 PDF exportado:', nomeArquivo);
+}

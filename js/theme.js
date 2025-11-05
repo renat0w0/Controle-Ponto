@@ -1,7 +1,7 @@
 ﻿// theme.js - Sistema de troca de tema (light/dark)
 
 // Carregar tema salvo ao iniciar
-const temaSalvo = localStorage.getItem('theme') || 'light';
+const temaSalvo = Storage.theme.get();
 if (temaSalvo === 'dark') {
     document.body.classList.add('dark-theme');
 }
@@ -15,14 +15,14 @@ function alternarTema() {
     if (isDark) {
         // Mudar para light
         body.classList.remove('dark-theme');
-        localStorage.setItem('theme', 'light');
+        Storage.theme.set('light');
         if (themeButton) {
             themeButton.querySelector('i').className = 'ri-moon-clear-fill';
         }
     } else {
         // Mudar para dark
         body.classList.add('dark-theme');
-        localStorage.setItem('theme', 'dark');
+        Storage.theme.set('dark');
         if (themeButton) {
             themeButton.querySelector('i').className = 'ri-sun-fill';
         }

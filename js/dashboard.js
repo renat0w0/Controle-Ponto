@@ -2,6 +2,7 @@
 
 let chartBarras = null;
 let chartLinha = null;
+let chartPizza = null;
 let periodoAtual = 7;
 
 // Funções para salvar/carregar filtro
@@ -461,7 +462,9 @@ function atualizarDashboard() {
     const metricas = calcularMetricas(dados);
     
     atualizarKPIs(metricas);
+    atualizarCardHoje();
     criarGraficoBarras(dados);
+    criarGraficoPizza(dados);
     criarGraficoLinha(dados);
     criarTabelaSemanal(dados);
 }
@@ -584,3 +587,159 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
     });
 });
+
+// Atualizar card "Hoje" com dados em tempo real
+function atualizarCardHoje() {
+    try {
+        const hoje = new Date().toISOString().split('T')[0];
+        const registros = carregarDados();
+        const registrosHoje = registros.filter(r => r.data === hoje);
+        
+        // Formatar data
+        const data = new Date(hoje + 'T00:00:00');
+        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const dataFormatada = `${diasSemana[data.getDay()]}, ${data.getDate()} de ${meses[data.getMonth()]}`;
+        
+        const hojeDataEl = document.getElementById('hojeData');
+        if (hojeDataEl) hojeDataEl.textContent = dataFormatada;
+        
+        if (registrosHoje.length === 0) {
+            if (document.getElementById('hojeTempo')) document.getElementById('hojeTempo').textContent = '0h 0min';
+            if (document.getElementById('hojeExtra')) document.getElementById('hojeExtra').textContent = '--';
+            if (document.getElementById('progressPercent')) document.getElementById('progressPercent').textContent = '0%';
+            if (document.getElementById('progressCircle')) document.getElementById('progressCircle').setAttribute('stroke-dasharray', '0, 100');
+            return;
+        }
+        
+        // Agrupar registros de hoje
+        const agrupado = agruparRegistrosPorData(registrosHoje)[0];
+        
+        if (!agrupado || !agrupado.entrada || !agrupado.saida) {
+            if (document.getElementById('hojeTempo')) document.getElementById('hojeTempo').textContent = '0h 0min';
+            if (document.getElementById('hojeExtra')) document.getElementById('hojeExtra').textContent = '--';
+            if (document.getElementById('progressPercent')) document.getElementById('progressPercent').textContent = '0%';
+            if (document.getElementById('progressCircle')) document.getElementById('progressCircle').setAttribute('stroke-dasharray', '0, 100');
+            return;
+        }
+        
+        // Calcular horas trabalhadas
+        const totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida);
+        const horas = Math.floor(totalMin / 60);
+        const minutos = totalMin % 60;
+        
+        if (document.getElementById('hojeTempo')) {
+            document.getElementById('hojeTempo').textContent = `${horas}h ${minutos}min`;
+        }
+        
+        // Calcular hora extra
+        const extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida);
+        if (document.getElementById('hojeExtra')) {
+            if (extrasMin > 0) {
+                const horasExtra = Math.floor(extrasMin / 60);
+                const minutosExtra = extrasMin % 60;
+                document.getElementById('hojeExtra').textContent = `+${horasExtra}h ${minutosExtra}min`;
+            } else if (extrasMin < 0) {
+                const abs = Math.abs(extrasMin);
+                const horasExtra = Math.floor(abs / 60);
+                const minutosExtra = abs % 60;
+                document.getElementById('hojeExtra').textContent = `-${horasExtra}h ${minutosExtra}min`;
+            } else {
+                document.getElementById('hojeExtra').textContent = '0h';
+            }
+        }
+        
+        // Progresso (meta de 10h = 600min)
+        const meta = 600; // 10 horas
+        const progresso = Math.min((totalMin / meta) * 100, 100);
+        if (document.getElementById('progressPercent')) {
+            document.getElementById('progressPercent').textContent = `${Math.round(progresso)}%`;
+        }
+        if (document.getElementById('progressCircle')) {
+            document.getElementById('progressCircle').setAttribute('stroke-dasharray', `${progresso}, 100`);
+        }
+    } catch (error) {
+        console.error('❌ Erro ao atualizar card Hoje:', error);
+    }
+}
+
+// Criar gráfico de pizza (distribuição semanal)
+function criarGraficoPizza(dados) {
+    try {
+        const ctx = document.getElementById('chartPizza');
+        if (!ctx) return;
+        
+        // Destruir gráfico anterior
+        if (chartPizza) {
+            chartPizza.destroy();
+        }
+        
+        // Agrupar por dia da semana
+        const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const horasPorDia = new Array(7).fill(0);
+        
+        dados.forEach(reg => {
+            const data = new Date(reg.data + 'T00:00:00');
+            const diaSemana = data.getDay();
+            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
+            horasPorDia[diaSemana] += totalMin / 60;
+        });
+        
+        // Cores vibrantes para cada dia
+        const cores = [
+            '#ef4444', // Domingo - Vermelho
+            '#3b82f6', // Segunda - Azul
+            '#10b981', // Terça - Verde
+            '#f59e0b', // Quarta - Laranja
+            '#8b5cf6', // Quinta - Roxo
+            '#ec4899', // Sexta - Rosa
+            '#f97316'  // Sábado - Laranja escuro
+        ];
+        
+        chartPizza = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: diasSemana,
+                datasets: [{
+                    data: horasPorDia,
+                    backgroundColor: cores,
+                    borderWidth: 2,
+                    borderColor: getComputedStyle(document.body).getPropertyValue('--body-color')
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const valor = context.parsed;
+                                const horas = Math.floor(valor);
+                                const minutos = Math.round((valor % 1) * 60);
+                                return `${context.label}: ${horas}h ${minutos}min`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('❌ Erro ao criar gráfico de pizza:', error);
+    }
+}
+
+// Inicializar com atualização automática do card Hoje
+setInterval(() => {
+    if (document.getElementById('hojeTempo')) {
+        atualizarCardHoje();
+    }
+}, 60000); // Atualizar a cada minuto
