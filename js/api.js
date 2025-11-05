@@ -21,8 +21,8 @@ async function fazerLogin(email, senha) {
             tokenAPI = dados.token || dados.data?.token || dados.accessToken;
             
             if (tokenAPI) {
-                localStorage.setItem('apiToken', tokenAPI);
-                localStorage.setItem('apiEmail', email);
+                Storage.auth.setToken(tokenAPI);
+                Storage.auth.setEmail(email);
                 return { sucesso: true, token: tokenAPI };
             }
         }
@@ -107,21 +107,21 @@ async function buscarUsuarioLogado(email) {
             // Dados podem estar em dados.data ou direto em dados
             const operador = dados.data || dados;
             
-            // Salvar informações no localStorage
-            localStorage.setItem('usuarioNome', operador.name || 'Usuário');
-            localStorage.setItem('usuarioId', operador.id || operador.personId || '');
-            localStorage.setItem('usuarioEmail', operador.email || email);
+            // Salvar informações usando Storage
+            Storage.user.set({
+                nome: operador.name || 'Usuário',
+                id: operador.id || operador.personId || '',
+                email: operador.email || email,
+                foto: operador.personPhoto?.photo || operador.photo || null
+            });
             
-            // Verificar se tem foto no personPhoto
+            // Log de foto
             if (operador.personPhoto?.photo) {
-                localStorage.setItem('usuarioFoto', operador.personPhoto.photo);
                 console.log('✅ Foto encontrada em personPhoto.photo');
             } else if (operador.photo) {
-                localStorage.setItem('usuarioFoto', operador.photo);
                 console.log('✅ Foto encontrada em photo');
             } else {
                 console.log('⚠️ Nenhuma foto disponível no perfil');
-                localStorage.removeItem('usuarioFoto');
             }
             
             return operador;
@@ -139,12 +139,15 @@ async function buscarUsuarioLogado(email) {
         console.log('👤 Dados do usuário (fallback):', pessoa);
         console.log('📸 Foto disponível:', pessoa.photo ? 'SIM' : 'NÃO');
         
-        // Salvar nome, foto e ID no localStorage
-        localStorage.setItem('usuarioNome', pessoa.name || 'Usuário');
-        localStorage.setItem('usuarioId', pessoa.id || pessoa.personId || '');
+        // Salvar usando Storage
+        Storage.user.set({
+            nome: pessoa.name || 'Usuário',
+            id: pessoa.id || pessoa.personId || '',
+            foto: pessoa.photo || null
+        });
+        
         if (pessoa.photo) {
-            localStorage.setItem('usuarioFoto', pessoa.photo);
-            console.log('✅ Foto salva no localStorage');
+            console.log('✅ Foto salva');
         } else {
             console.log('⚠️ Nenhuma foto retornada pela API');
         }
@@ -409,7 +412,7 @@ window.sincronizarRegistrosUsuario = async function() {
     }
     
     // Verificar se há token salvo
-    const tokenSalvo = localStorage.getItem('apiToken');
+    const tokenSalvo = Storage.auth.getToken();
     if (!tokenSalvo) {
         mensagemDiv.innerHTML = '<div class="alert alert-error">❌ Sessão expirada. Faça login novamente.</div>';
         setTimeout(() => {
@@ -545,9 +548,9 @@ window.selecionarPessoaNaPagina = function(id, nome) {
 
 // Preencher automaticamente com o usuário logado
 async function preencherUsuarioLogado() {
-    const usuarioNome = localStorage.getItem('usuarioNome');
-    const usuarioId = localStorage.getItem('usuarioId');
-    const emailSalvo = localStorage.getItem('apiEmail');
+    const user = Storage.user.get();
+    const { nome: usuarioNome, id: usuarioId } = user;
+    const emailSalvo = Storage.auth.getEmail();
     
     console.log('📋 Dados salvos:', { usuarioNome, usuarioId, emailSalvo });
     
@@ -585,8 +588,8 @@ async function preencherUsuarioLogado() {
 // Configurar formulário de login
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar token salvo
-    const tokenSalvo = localStorage.getItem('apiToken');
-    const emailSalvo = localStorage.getItem('apiEmail');
+    const tokenSalvo = Storage.auth.getToken();
+    const emailSalvo = Storage.auth.getEmail();
     
     if (tokenSalvo) {
         tokenAPI = tokenSalvo;
@@ -719,7 +722,7 @@ async function loginAPISimplificado() {
             }));
 
             const todosRegistros = [...registrosExistentes, ...registrosImportados];
-            localStorage.setItem('registros', JSON.stringify(todosRegistros));
+            Storage.registros.set(todosRegistros);
 
             mensagemDiv.innerHTML = `<div class="alert alert-success">✅ ${registros.length} registros importados com sucesso!</div>`;
             btnTexto.innerHTML = 'Conectar e Buscar Registros';
@@ -741,8 +744,7 @@ async function loginAPISimplificado() {
 }
 
 function limparCredenciais() {
-    localStorage.removeItem('apiToken');
-    localStorage.removeItem('apiEmail');
+    Storage.auth.clear();
     document.getElementById('apiEmail').value = '';
     document.getElementById('apiSenha').value = '';
     document.getElementById('mensagemAPI').innerHTML = '<div class="alert alert-success">✅ Credenciais removidas</div>';

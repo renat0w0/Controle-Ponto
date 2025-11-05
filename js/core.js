@@ -69,20 +69,17 @@ function calcularTotalTrabalhado(entrada, saida) {
     return minutosSaida - minutosEntrada;
 }
 
-// Gerenciamento de dados no localStorage
+// Gerenciamento de dados
 function carregarDados() {
-    const dados = localStorage.getItem('registros');
-    return dados ? JSON.parse(dados) : [];
+    return Storage.registros.get();
 }
 
 function salvarDados(registros) {
-    localStorage.setItem('registros', JSON.stringify(registros));
+    Storage.registros.set(registros);
 }
 
 function adicionarRegistro(registro) {
-    const registros = carregarDados();
-    registros.push(registro);
-    salvarDados(registros);
+    Storage.registros.add(registro);
 }
 
 function removerRegistro(data, entrada) {
@@ -96,7 +93,7 @@ function limparDados() {
         'Tem certeza que deseja limpar todos os dados?',
         'Esta ação não pode ser desfeita e todos os registros serão removidos permanentemente.',
         () => {
-            localStorage.removeItem('registros');
+            Storage.registros.clear();
             fecharModal();
             
             // Mostrar notificação de sucesso
@@ -246,12 +243,71 @@ function agruparRegistrosPorData(registros) {
     ];
     const paginaAtual = window.location.pathname.split('/').pop();
     if (paginasProtegidas.includes(paginaAtual)) {
-        const token = localStorage.getItem('apiToken');
+        const token = Storage.auth.getToken();
         if (!token) {
             window.location.href = 'login.html';
         }
     }
 })();
+
+// Timer em tempo real no header
+function iniciarTimerHeader() {
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (!timerDisplay) return;
+    
+    function atualizarTimer() {
+        const registros = carregarDados();
+        const hoje = new Date().toISOString().split('T')[0];
+        
+        // Filtrar registros de hoje
+        const registrosHoje = registros.filter(r => r.data === hoje);
+        
+        if (registrosHoje.length === 0) {
+            timerDisplay.textContent = '⏱️ 0h 0min';
+            return;
+        }
+        
+        // Ordenar por hora
+        registrosHoje.sort((a, b) => a.hora.localeCompare(b.hora));
+        
+        // Pegar primeiro e último registro
+        const entrada = registrosHoje[0].hora;
+        const agora = new Date();
+        const horaAtual = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+        
+        // Se tem saída, usar ela; senão, usar hora atual
+        const saida = registrosHoje.length > 1 ? registrosHoje[registrosHoje.length - 1].hora : horaAtual;
+        
+        // Calcular diferença
+        const [hE, mE] = entrada.split(':').map(Number);
+        const [hS, mS] = saida.split(':').map(Number);
+        
+        const totalMinutos = (hS * 60 + mS) - (hE * 60 + mE);
+        const horas = Math.floor(totalMinutos / 60);
+        const minutos = totalMinutos % 60;
+        
+        // Atualizar display
+        timerDisplay.textContent = `⏱️ ${horas}h ${minutos}min`;
+        
+        // Adicionar indicador se ainda está trabalhando
+        if (registrosHoje.length % 2 !== 0) {
+            timerDisplay.style.color = '#10b981'; // Verde = trabalhando
+        } else {
+            timerDisplay.style.color = 'var(--text-color)';
+        }
+    }
+    
+    // Atualizar a cada segundo
+    atualizarTimer();
+    setInterval(atualizarTimer, 1000);
+}
+
+// Iniciar timer quando DOM carregar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciarTimerHeader);
+} else {
+    iniciarTimerHeader();
+}
 
 // Tornar funções disponíveis globalmente para uso em onclick inline no HTML
 window.limparDados = limparDados;

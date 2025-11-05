@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#3b82f6">
     <title>Dashboard - Controle de Ponto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css">
     <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-    <!--=============== HEADER ===============-->
-    <header class="header" id="header">
+    <!-- Header -->
+    <header class="header header--visible" id="header">
         <div class="header__container">
             <button class="header__toggle" id="header-toggle">
                 <i class="ri-menu-line"></i>
             </button>
+            <div class="header__timer" id="headerTimer" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-color); font-weight: 500;">
+                <i class="ri-time-line"></i>
+                <span id="timerDisplay">⏱️ --h --min</span>
+            </div>
             <button class="header__theme" id="theme-button" title="Alternar tema">
                 <i class="ri-moon-clear-fill"></i>
             </button>
         </div>
     </header>
 
-    <!--=============== SIDEBAR ===============-->
+    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar__container">
             <div class="sidebar__user">
@@ -83,7 +89,7 @@
         </div>
     </nav>
 
-    <!--=============== MAIN ===============-->
+    <!-- Main -->
     <main class="main container" id="main">
         <div class="dashboard-header">
             <div>
@@ -100,6 +106,38 @@
             <input type="date" id="dataFim" class="date-input">
             <button onclick="aplicarFiltroData()" class="btn btn-primary">Filtrar</button>
             <button onclick="limparFiltroData()" class="btn btn-secondary">Limpar</button>
+        </div>
+
+        <!-- Card Hoje (Destaque) -->
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 2rem; border: none;">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center;">
+                <div>
+                    <h2 style="margin: 0; font-size: 1.5rem; color: white;">⏱️ Hoje</h2>
+                    <p style="margin: 0.5rem 0; opacity: 0.9;" id="hojeData">--</p>
+                    <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+                        <div>
+                            <div style="font-size: 2rem; font-weight: bold;" id="hojeTempo">0h 0min</div>
+                            <div style="opacity: 0.8; font-size: 0.9rem;">Trabalhadas</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: bold;" id="hojeExtra">--</div>
+                            <div style="opacity: 0.8; font-size: 0.9rem;">Extras</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 150px; height: 150px; position: relative;">
+                    <svg viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+                        <path id="progressCircle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none" stroke="white" stroke-width="3" stroke-dasharray="0, 100" stroke-linecap="round"/>
+                    </svg>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold;" id="progressPercent">0%</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">da meta</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Stats -->
@@ -147,6 +185,13 @@
             </div>
             
             <div class="chart-container">
+                <h2>Distribuição Semanal</h2>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="chartPizza"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
                 <h2>Evolução de Horas Extras</h2>
                 <div style="position: relative; height: 300px;">
                     <canvas id="chartLinha"></canvas>
@@ -179,7 +224,7 @@
         </footer>
     </main>
 
-    <!--=============== MODAL ===============-->
+    <!-- Modal -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal">
             <div class="modal__header">
@@ -205,8 +250,31 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/http.js"></script>
+    <script src="../js/error-handler.js"></script>
+    <script src="../js/pwa.js"></script>
     <script src="../js/core.js"></script>
     <script src="../js/dashboard.js"></script>
     <script src="../js/sidebar.js"></script>
+    <script>
+        // Auto-hide header
+        const header = document.getElementById('header');
+        const scrollThreshold = 50;
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop < scrollThreshold) {
+                header.classList.remove('header--hidden');
+                header.classList.add('header--visible');
+            } else {
+                header.classList.remove('header--visible');
+                header.classList.add('header--hidden');
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+    </script>
 </body>
 </html>

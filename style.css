@@ -77,6 +77,8 @@ body {
   background-color: var(--body-color);
   color: var(--text-color);
   transition: background-color .4s;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 a {
@@ -183,6 +185,35 @@ body.dark-theme {
   position: relative;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+
+.header__timer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.header__timer i {
+  font-size: 1.2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .header__timer {
+    font-size: 0.8rem;
+  }
+  
+  .header__timer span {
+    display: none;
+  }
+  
+  .header__timer::after {
+    content: attr(data-time);
+    font-size: 0.75rem;
+  }
 }
 
 body.dark-theme .header__container {
@@ -669,9 +700,15 @@ body:not(.dark-theme) .stat-card:hover {
 /* Charts */
 .chart-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 30px;
   margin-bottom: 30px;
+}
+
+@media (min-width: 1200px) {
+  .chart-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .chart-container {
@@ -1456,16 +1493,14 @@ body:not(.dark-theme) .search-suggestions {
 }
 
 .modal__button--confirm {
-    background: linear-gradient(135deg,
-        hsl(var(--hue), var(--sat), 60%),
-        hsl(var(--hue), var(--sat), 50%));
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: #fff;
-    box-shadow: 0 4px 12px hsla(var(--hue), var(--sat), 50%, 0.3);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .modal__button--confirm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px hsla(var(--hue), var(--sat), 50%, 0.4);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 
 .modal__button--confirm:active {
@@ -1491,5 +1526,57 @@ body:not(.dark-theme) .search-suggestions {
     to {
         transform: translateX(400px);
         opacity: 0;
+    }
+}
+
+/*=============== PAGINATION ===============*/
+.btn-pagination {
+    min-width: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.btn-pagination i {
+    font-size: 1.25rem;
+}
+
+.btn-pagination:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-pagination:not(:disabled):active {
+    transform: translateY(0);
+}
+
+.btn-pagination.active {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    font-weight: 600;
+}
+
+.pagination-controls {
+    animation: fadeIn 0.3s ease;
+}
+
+.pagination-info {
+    font-size: 0.9rem; /* Um pouco menor */
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .pagination-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .pagination-info {
+        text-align: center;
     }
 }

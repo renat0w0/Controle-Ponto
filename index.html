@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="description" content="Sistema de controle de ponto com integração IDSecure">
     <title>Redirecionando...</title>
     <style>
         body {
@@ -38,6 +42,10 @@
         <div class="spinner"></div>
         <p>Redirecionando para o login...</p>
     </div>
+    
+    <script src="./js/pwa.js"></script>
+    <script src="./js/storage.js"></script>
+    <script src="./js/error-handler.js"></script>
     <script>
         window.location.href = './login.html';
     </script>

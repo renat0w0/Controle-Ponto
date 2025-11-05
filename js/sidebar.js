@@ -61,9 +61,8 @@ themeButton.addEventListener('click', () => {
 /*=============== USER DATA IN SIDEBAR ===============*/
 // Preencher dados do usuário no menu lateral
 async function preencherSidebarUsuario() {
-    let nome = localStorage.getItem('usuarioNome');
-    const email = localStorage.getItem('apiEmail') || '';
-    let foto = localStorage.getItem('usuarioFoto');
+    const user = Storage.user.get();
+    let { nome, email, foto } = user;
     
     // Se não tiver nome salvo, buscar da API
     if (!nome && email) {
@@ -71,8 +70,9 @@ async function preencherSidebarUsuario() {
         try {
             if (typeof buscarUsuarioLogado === 'function') {
                 await buscarUsuarioLogado(email);
-                nome = localStorage.getItem('usuarioNome') || 'Usuário';
-                foto = localStorage.getItem('usuarioFoto');
+                const updatedUser = Storage.user.get();
+                nome = updatedUser.nome || 'Usuário';
+                foto = updatedUser.foto;
             }
         } catch (erro) {
             console.error('❌ Erro ao buscar usuário:', erro);
@@ -112,10 +112,8 @@ async function preencherSidebarUsuario() {
 }
 window.preencherSidebarUsuario = preencherSidebarUsuario;
 window.logoutIDSec = function() {
-    localStorage.removeItem('apiToken');
-    localStorage.removeItem('apiEmail');
-    localStorage.removeItem('usuarioNome');
-    localStorage.removeItem('usuarioFoto');
+    Storage.auth.clear();
+    Storage.user.clear();
     window.location.href = '../login.html';
 };
 document.addEventListener('DOMContentLoaded', preencherSidebarUsuario);
