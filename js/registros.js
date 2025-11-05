@@ -380,10 +380,25 @@ function exportarPDF() {
         doc.text(`Total de Horas Extras: ${sinal}${Math.floor(absExtras)}h ${Math.round((absExtras % 1) * 60)}min`, 14, finalY + 7);
     }
     
-    // Footer
+    // Informações do usuário
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const nomeUsuario = usuario.nome || 'Usuário';
+    const emailUsuario = usuario.email || 'N/A';
+    
+    // Footer com informações
+    const pageHeight = doc.internal.pageSize.height;
     doc.setFontSize(8);
     doc.setFont(undefined, 'normal');
-    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, doc.internal.pageSize.height - 10);
+    doc.setTextColor(100, 100, 100);
+    
+    // Linha 1: Exportado por
+    doc.text(`Exportado por: ${nomeUsuario} (${emailUsuario})`, 14, pageHeight - 20);
+    
+    // Linha 2: Registros de
+    doc.text(`Registros de: ${nomeUsuario}`, 14, pageHeight - 15);
+    
+    // Linha 3: Data/hora da exportação
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, pageHeight - 10);
     
     // Download
     const nomeArquivo = `registros-ponto-${new Date().toISOString().split('T')[0]}.pdf`;

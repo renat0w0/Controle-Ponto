@@ -12,7 +12,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header header--visible" id="header">
+    <header class="header" id="header">
         <div class="header__container">
             <button class="header__toggle" id="header-toggle">
                 <i class="ri-menu-line"></i>
@@ -220,7 +220,25 @@
         </div>
 
         <footer class="footer">
-            <p>Desenvolvido por <a href="https://github.com/renat0w0" target="_blank">@renat0w0</a></p>
+            <div class="footer__content">
+                <p class="footer__text">Desenvolvido por @renat0w0</p>
+                <div class="footer__links">
+                    <a href="https://github.com/renat0w0" target="_blank" rel="noopener noreferrer" class="footer__link">
+                        <i class="ri-github-fill"></i>
+                        <span>GitHub</span>
+                    </a>
+                    <span class="footer__divider"></span>
+                    <a href="https://github.com/renat0w0/Controle-Ponto" target="_blank" rel="noopener noreferrer" class="footer__link">
+                        <i class="ri-git-repository-fill"></i>
+                        <span>Repositório</span>
+                    </a>
+                    <span class="footer__divider"></span>
+                    <a href="https://github.com/renat0w0/Controle-Ponto/issues" target="_blank" rel="noopener noreferrer" class="footer__link">
+                        <i class="ri-bug-fill"></i>
+                        <span>Reportar Bug</span>
+                    </a>
+                </div>
+            </div>
         </footer>
     </main>
 
@@ -258,23 +276,41 @@
     <script src="../js/dashboard.js"></script>
     <script src="../js/sidebar.js"></script>
     <script>
-        // Auto-hide header
+        // Auto-hide header - só mostra quando parar no topo
         const header = document.getElementById('header');
-        const scrollThreshold = 50;
+        let scrollTimeout;
         
-        window.addEventListener('scroll', () => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const checkHeaderVisibility = () => {
+            // SEMPRE esconde durante o scroll, sem exceção
+            header.classList.remove('header--visible');
+            header.classList.add('header--hidden');
             
-            if (scrollTop < scrollThreshold) {
-                header.classList.remove('header--hidden');
-                header.classList.add('header--visible');
-            } else {
-                header.classList.remove('header--visible');
-                header.classList.add('header--hidden');
-            }
+            // Limpa o timeout anterior
+            clearTimeout(scrollTimeout);
             
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-        });
+            // Só verifica posição depois de 150ms SEM scrollar
+            scrollTimeout = setTimeout(() => {
+                const finalScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Só mostra se parou EXATAMENTE no topo
+                if (finalScrollTop === 0) {
+                    header.classList.remove('header--hidden');
+                    header.classList.add('header--visible');
+                }
+                // Se não estiver no topo, mantém escondido (já está)
+            }, 150);
+        };
+        
+        // Verificar posição inicial ao carregar
+        const initialScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (initialScrollTop === 0) {
+            header.classList.add('header--visible');
+        } else {
+            header.classList.add('header--hidden');
+        }
+        
+        // Listener no scroll
+        window.addEventListener('scroll', checkHeaderVisibility, { passive: true });
     </script>
 </body>
 </html>

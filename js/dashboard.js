@@ -649,8 +649,8 @@ function atualizarCardHoje() {
             }
         }
         
-        // Progresso (meta de 10h = 600min)
-        const meta = 600; // 10 horas
+        // Progresso (meta de 8h = 480min)
+        const meta = 480; // 8 horas
         const progresso = Math.min((totalMin / meta) * 100, 100);
         if (document.getElementById('progressPercent')) {
             document.getElementById('progressPercent').textContent = `${Math.round(progresso)}%`;
