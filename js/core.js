@@ -91,15 +91,12 @@ function limparDados() {
             Storage.registros.clear();
             fecharModal();
             
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:1rem 1.5rem;border-radius:12px;box-shadow:0 8px 16px rgba(0,0,0,0.2);z-index:10001;animation:slideIn 0.3s ease;';
-            overlay.innerHTML = '<i class="ri-check-line" style="margin-right:8px;"></i>Dados removidos com sucesso!';
-            document.body.appendChild(overlay);
-            
-            setTimeout(() => {
-                overlay.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => window.location.reload(), 300);
-            }, 2000);
+            if (typeof toast !== 'undefined') {
+                toast.success('Dados removidos com sucesso!');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                window.location.reload();
+            }
         }
     );
 }

@@ -9,6 +9,9 @@ function removerRegistroEAtualizar(data, entrada) {
     if (confirm('⚠️ Deseja remover este registro?')) {
         removerRegistro(data, entrada);
         atualizarTabela();
+        if (typeof toast !== 'undefined') {
+            toast.success('Registro removido com sucesso!');
+        }
     }
 }
 
@@ -19,7 +22,11 @@ function adicionarRegistroManual() {
     const hora = document.getElementById('novaHora').value;
     
     if (!data || !hora) {
-        alert('⚠️ Por favor, preencha data e hora!');
+        if (typeof toast !== 'undefined') {
+            toast.warning('Por favor, preencha data e hora!');
+        } else {
+            alert('⚠️ Por favor, preencha data e hora!');
+        }
         return;
     }
     
@@ -38,7 +45,11 @@ function adicionarRegistroManual() {
     
     atualizarTabela();
     
-    alert('✅ Registro adicionado com sucesso!');
+    if (typeof toast !== 'undefined') {
+        toast.success('Registro adicionado com sucesso!');
+    } else {
+        alert('✅ Registro adicionado com sucesso!');
+    }
 }
 
 function aplicarFiltro() {
@@ -46,25 +57,29 @@ function aplicarFiltro() {
     const dataFim = document.getElementById('filtroDataFim').value;
     
     if (!dataInicio || !dataFim) {
-        alert('⚠️ Selecione as datas de início e fim!');
+        if (typeof toast !== 'undefined') {
+            toast.warning('Selecione as datas de início e fim!');
+        } else {
+            alert('⚠️ Selecione as datas de início e fim!');
+        }
         return;
     }
     
     const registros = carregarDados();
     
-    // Filtrar registros pelo período
     registrosFiltrados = registros.filter(reg => {
         return reg.data >= dataInicio && reg.data <= dataFim;
     });
     
-    // Resetar para página 1
     paginaAtual = 1;
     
-    // Atualizar tabela com registros filtrados
     renderizarRegistros(registrosFiltrados);
+    
+    if (typeof toast !== 'undefined') {
+        toast.info(`Filtro aplicado: ${registrosFiltrados.length} registros encontrados`);
+    }
 }
 
-// Limpar filtro
 function limparFiltro() {
     document.getElementById('filtroDataInicio').value = '';
     document.getElementById('filtroDataFim').value = '';
