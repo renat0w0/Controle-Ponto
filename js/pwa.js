@@ -1,8 +1,5 @@
-// pwa.js - Registro do Service Worker e instalação PWA
+// Registro do Service Worker e instalação PWA
 
-/**
- * Registrar Service Worker
- */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -10,7 +7,6 @@ if ('serviceWorker' in navigator) {
             .then((registration) => {
                 console.log('✅ Service Worker registrado:', registration.scope);
                 
-                // Verificar updates a cada 1h
                 setInterval(() => {
                     registration.update();
                 }, 60 * 60 * 1000);
@@ -21,34 +17,20 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-/**
- * Detectar PWA instalado
- */
 function isPWAInstalled() {
     return window.matchMedia('(display-mode: standalone)').matches ||
            window.navigator.standalone === true;
 }
 
-/**
- * Prompt de instalação PWA
- */
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevenir mini-infobar automático
     e.preventDefault();
     deferredPrompt = e;
     
-    // Mostrar botão de instalação customizado (opcional)
     console.log('💡 App pode ser instalado');
-    
-    // TODO: Mostrar UI customizada de instalação
-    // showInstallButton();
 });
 
-/**
- * Instalar PWA programaticamente
- */
 async function installPWA() {
     if (!deferredPrompt) {
         console.warn('⚠️ Prompt de instalação não disponível');
@@ -62,17 +44,11 @@ async function installPWA() {
     deferredPrompt = null;
 }
 
-/**
- * Evento após instalação
- */
 window.addEventListener('appinstalled', () => {
     console.log('✅ PWA instalado com sucesso!');
     deferredPrompt = null;
 });
 
-/**
- * Detectar modo online/offline
- */
 window.addEventListener('online', () => {
     console.log('🌐 Online');
     if (typeof mostrarNotificacao === 'function') {
@@ -87,7 +63,6 @@ window.addEventListener('offline', () => {
     }
 });
 
-// Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { isPWAInstalled, installPWA };
 }

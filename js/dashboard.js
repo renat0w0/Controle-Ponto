@@ -1,20 +1,15 @@
-// dashboard.js - Lógica do dashboard com KPIs e gráficos
+// Dashboard - KPIs e gráficos
 
 let chartBarras = null;
 let chartLinha = null;
 let chartPizza = null;
 let periodoAtual = 7;
 
-// Funções para salvar/carregar filtro
 function salvarFiltro() {
     const dataInicio = document.getElementById('dataInicio').value;
     const dataFim = document.getElementById('dataFim').value;
     
-    const filtro = {
-        dataInicio,
-        dataFim,
-        periodoAtual
-    };
+    const filtro = { dataInicio, dataFim, periodoAtual };
     
     console.log('💾 Filtro salvo:', filtro);
     localStorage.setItem('dashboardFiltro', JSON.stringify(filtro));
@@ -26,10 +21,8 @@ function carregarFiltro() {
     
     try {
         const filtro = JSON.parse(filtroSalvo);
-        
         console.log('📥 Filtro carregado:', filtro);
         
-        // Restaurar valores dos inputs
         if (filtro.dataInicio && document.getElementById('dataInicio')) {
             document.getElementById('dataInicio').value = filtro.dataInicio;
         }
@@ -37,7 +30,6 @@ function carregarFiltro() {
             document.getElementById('dataFim').value = filtro.dataFim;
         }
         
-        // Restaurar período
         if (filtro.periodoAtual !== undefined) {
             periodoAtual = filtro.periodoAtual;
         }
@@ -54,12 +46,10 @@ function filtrarDadosPorPeriodo() {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     
-    // Se for null, retorna tudo
     if (periodoAtual === null) {
         return registros;
     }
     
-    // Se for objeto com datas personalizadas
     if (typeof periodoAtual === 'object' && periodoAtual.inicio && periodoAtual.fim) {
         const inicio = new Date(periodoAtual.inicio);
         const fim = new Date(periodoAtual.fim);
@@ -71,7 +61,6 @@ function filtrarDadosPorPeriodo() {
         });
     }
     
-    // Se for "mes", filtra pelo mês atual
     if (periodoAtual === 'mes') {
         return registros.filter(r => {
             const data = new Date(r.data);
@@ -79,7 +68,6 @@ function filtrarDadosPorPeriodo() {
         });
     }
     
-    // Se for número (7, 30), filtra pelos últimos N dias
     const dataLimite = new Date(hoje);
     dataLimite.setDate(dataLimite.getDate() - periodoAtual);
     

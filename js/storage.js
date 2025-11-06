@@ -1,31 +1,13 @@
-// storage.js - Gerenciador centralizado de localStorage
+// Gerenciador centralizado de localStorage
 
-/**
- * Storage Manager com API unificada e type-safe
- * Benefícios:
- * - Evita bugs de JSON.parse/stringify
- * - Fallback automático para erros
- * - Namespace para evitar conflitos
- * - Fácil migrar para IndexedDB depois
- */
 const Storage = {
-    /**
-     * Prefixo para todas as chaves (evita conflitos)
-     */
-    prefix: 'cp_', // controle-ponto
+    prefix: 'cp_',
 
-    /**
-     * Obter valor do storage
-     * @param {string} key - Chave do item
-     * @param {*} defaultValue - Valor padrão se não existir
-     * @returns {*} Valor armazenado ou defaultValue
-     */
     get(key, defaultValue = null) {
         try {
             const item = localStorage.getItem(this.prefix + key);
             if (item === null) return defaultValue;
             
-            // Tenta parsear JSON, se falhar retorna string pura
             try {
                 return JSON.parse(item);
             } catch {
@@ -37,12 +19,6 @@ const Storage = {
         }
     },
 
-    /**
-     * Armazenar valor no storage
-     * @param {string} key - Chave do item
-     * @param {*} value - Valor a armazenar (será convertido para JSON)
-     * @returns {boolean} True se sucesso, false se erro
-     */
     set(key, value) {
         try {
             const serialized = typeof value === 'string' 

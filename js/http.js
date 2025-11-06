@@ -1,50 +1,29 @@
-// http.js - Cliente HTTP centralizado com retry, cache e interceptors
+// Cliente HTTP centralizado
 
-/**
- * Cliente HTTP com funcionalidades avançadas:
- * - Retry automático em caso de falha
- * - Cache de requisições com TTL
- * - Interceptors de request/response
- * - Gerenciamento automático de token
- * - Timeout configurável
- */
 class APIClient {
     constructor(config = {}) {
         this.baseURL = config.baseURL || 'https://main.idsecure.com.br:5000/api/v1';
-        this.timeout = config.timeout || 30000; // 30s
+        this.timeout = config.timeout || 30000;
         this.retries = config.retries || 3;
-        this.retryDelay = config.retryDelay || 1000; // 1s
+        this.retryDelay = config.retryDelay || 1000;
         
-        // Cache em memória (Map = mais rápido que Object)
         this.cache = new Map();
-        this.cacheTTL = config.cacheTTL || 5 * 60 * 1000; // 5min
+        this.cacheTTL = config.cacheTTL || 5 * 60 * 1000;
         
-        // Interceptors (hooks antes/depois da requisição)
         this.interceptors = {
             request: [],
             response: []
         };
     }
 
-    /**
-     * Adicionar interceptor de request
-     * @param {Function} fn - (config) => config
-     */
     addRequestInterceptor(fn) {
         this.interceptors.request.push(fn);
     }
 
-    /**
-     * Adicionar interceptor de response
-     * @param {Function} fn - (response) => response
-     */
     addResponseInterceptor(fn) {
         this.interceptors.response.push(fn);
     }
 
-    /**
-     * Obter token do storage
-     */
     getToken() {
         return Storage?.auth.getToken() || localStorage.getItem('cp_apiToken');
     }

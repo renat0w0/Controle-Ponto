@@ -1,4 +1,4 @@
-// api.js - Integração com IDSecure API
+// Integração com IDSecure API
 
 let tokenAPI = null;
 let debounceTimer = null;
@@ -27,7 +27,6 @@ async function fazerLogin(email, senha) {
             }
         }
         
-        // Mensagem de erro mais específica
         let mensagemErro = dados.message || dados.error || 'Erro ao fazer login';
         
         if (response.status === 401) {
@@ -50,7 +49,6 @@ async function buscarPessoas(query) {
     }
     
     try {
-        // Usar parâmetro 'value' ao invés de 'search' e incluir fotos
         const url = `https://report.idsecure.com.br:5000/api/v1/accesslog/persons?value=${encodeURIComponent(query)}&pageSize=10&status=1&personType=Person&sortField=name&getPhotos=true`;
         
         console.log('🔍 Buscando pessoas:', { query, url, token: tokenAPI ? 'presente' : 'ausente' });
@@ -75,9 +73,8 @@ async function buscarPessoas(query) {
         console.log('✅ Dados recebidos:', dados);
         console.log('📋 Estrutura data:', dados.data);
         
-        // A API retorna: { data: { data: [...pessoas], total: N } }
         const pessoas = dados.data?.data || [];
-        console.log('� Array de pessoas extraído:', pessoas);
+        console.log('👥 Array de pessoas extraído:', pessoas);
         console.log('📊 Total de pessoas:', pessoas.length);
         
         return pessoas;
@@ -88,7 +85,6 @@ async function buscarPessoas(query) {
 }
 
 async function buscarUsuarioLogado(email) {
-    // Tentar primeiro pela API /me que retorna dados completos do operador logado
     try {
         console.log('🔍 Buscando dados do operador via /api/v1/operators/me');
         
@@ -104,10 +100,8 @@ async function buscarUsuarioLogado(email) {
             const dados = await response.json();
             console.log('👤 Dados completos do operador:', dados);
             
-            // Dados podem estar em dados.data ou direto em dados
             const operador = dados.data || dados;
             
-            // Salvar informações usando Storage
             Storage.user.set({
                 nome: operador.name || 'Usuário',
                 id: operador.id || operador.personId || '',
@@ -115,7 +109,6 @@ async function buscarUsuarioLogado(email) {
                 foto: operador.personPhoto?.photo || operador.photo || null
             });
             
-            // Log de foto
             if (operador.personPhoto?.photo) {
                 console.log('✅ Foto encontrada em personPhoto.photo');
             } else if (operador.photo) {

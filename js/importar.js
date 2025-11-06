@@ -1,10 +1,9 @@
-// importar.js - Lógica de importação de CSV
+// Lógica de importação de CSV
 
 function processarCSVCatraca(conteudo) {
     const linhas = conteudo.split('\n');
     const registros = [];
     
-    // Regex para capturar data e hora: DD/MM/YYYY HH:MM
     const regex = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/g;
     
     for (const linha of linhas) {
@@ -32,7 +31,6 @@ function importarCSV(conteudo) {
         return { importados: 0, duplicados: 0 };
     }
     
-    // Agrupar registros por data (entrada/saída)
     const registrosAgrupados = agruparRegistrosPorData(registrosNovos);
     
     const registrosExistentes = carregarDados();
@@ -60,7 +58,6 @@ function configurarImportacao() {
     const fileInput = document.getElementById('csvFileInput');
     const resultDiv = document.getElementById('importResult');
     
-    // Drag & Drop
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.style.borderColor = 'var(--color-primary)';
@@ -83,7 +80,6 @@ function configurarImportacao() {
         }
     });
     
-    // File Input
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -113,7 +109,6 @@ function configurarImportacao() {
     }
 }
 
-// Inicializar
 document.addEventListener('DOMContentLoaded', () => {
     configurarImportacao();
 });

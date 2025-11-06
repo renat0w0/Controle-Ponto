@@ -1,9 +1,7 @@
-// registros.js - Gerenciamento da tabela de registros
+// Gerenciamento da tabela de registros
 
-// Variável para armazenar registros filtrados
 let registrosFiltrados = null;
 
-// Paginação
 let paginaAtual = 1;
 const ITENS_POR_PAGINA = 50;
 
@@ -14,10 +12,8 @@ function removerRegistroEAtualizar(data, entrada) {
     }
 }
 
-// Tornar função global para uso em onclick inline no HTML
 window.removerRegistroEAtualizar = removerRegistroEAtualizar;
 
-// Adicionar registro manual
 function adicionarRegistroManual() {
     const data = document.getElementById('novaData').value;
     const hora = document.getElementById('novaHora').value;
@@ -29,27 +25,22 @@ function adicionarRegistroManual() {
     
     const registros = carregarDados();
     
-    // Adicionar novo registro
     registros.push({
         data: data,
         hora: hora,
         tipo: 'manual'
     });
     
-    // Salvar
     localStorage.setItem('registros', JSON.stringify(registros));
     
-    // Limpar campos
     document.getElementById('novaData').value = '';
     document.getElementById('novaHora').value = '';
     
-    // Atualizar tabela
     atualizarTabela();
     
     alert('✅ Registro adicionado com sucesso!');
 }
 
-// Aplicar filtro de datas
 function aplicarFiltro() {
     const dataInicio = document.getElementById('filtroDataInicio').value;
     const dataFim = document.getElementById('filtroDataFim').value;

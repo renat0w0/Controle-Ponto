@@ -1,13 +1,12 @@
-// core.js - Funções compartilhadas e configurações globais
+// Funções compartilhadas
 
 const CONFIG = {
     horaEntradaNormal: { hora: 7, minuto: 30 },
     horaSaidaNormal: { hora: 17, minuto: 30 },
-    cargaHorariaDiaria: 540, // 9 horas em minutos
-    jornadaNormal: 520 // 8h40min em minutos (jornada padrão para cálculo de extras)
+    cargaHorariaDiaria: 540,
+    jornadaNormal: 520
 };
 
-// Funções de utilidade
 function formatarMinutosParaHoras(minutos) {
     const horas = Math.floor(minutos / 60);
     const mins = minutos % 60;
@@ -46,15 +45,12 @@ function ehFimDeSemana(dataStr) {
 function calcularHorasExtras(dataStr, entrada, saida) {
     const data = new Date(dataStr + 'T00:00:00');
     const diaSemana = data.getDay();
-    
-    // Fim de semana = todo período é extra
     if (diaSemana === 0 || diaSemana === 6) {
         return calcularTotalTrabalhado(entrada, saida);
     }
     
-    // Dia de semana - calcula extras após 17:30
     const minutosSaida = converterParaMinutos(saida);
-    const horaSaidaNormal = 17 * 60 + 30; // 17:30 em minutos = 1050
+    const horaSaidaNormal = 17 * 60 + 30;
     
     if (minutosSaida > horaSaidaNormal) {
         return minutosSaida - horaSaidaNormal;
@@ -69,7 +65,6 @@ function calcularTotalTrabalhado(entrada, saida) {
     return minutosSaida - minutosEntrada;
 }
 
-// Gerenciamento de dados
 function carregarDados() {
     return Storage.registros.get();
 }
@@ -96,7 +91,6 @@ function limparDados() {
             Storage.registros.clear();
             fecharModal();
             
-            // Mostrar notificação de sucesso
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:1rem 1.5rem;border-radius:12px;box-shadow:0 8px 16px rgba(0,0,0,0.2);z-index:10001;animation:slideIn 0.3s ease;';
             overlay.innerHTML = '<i class="ri-check-line" style="margin-right:8px;"></i>Dados removidos com sucesso!';
@@ -110,13 +104,11 @@ function limparDados() {
     );
 }
 
-// Funções do Modal
 function abrirModal(titulo, mensagem, onConfirm) {
     const modal = document.getElementById('confirmModal');
     
     if (!modal) {
         console.error('Modal não encontrado! Certifique-se de que o HTML do modal está na página.');
-        // Fallback para o confirm padrão
         if (confirm(mensagem)) {
             onConfirm();
         }
@@ -130,7 +122,6 @@ function abrirModal(titulo, mensagem, onConfirm) {
     modalTitle.textContent = titulo;
     modalMessage.textContent = mensagem;
     
-    // Remover listeners antigos e adicionar novo
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     newConfirmBtn.addEventListener('click', onConfirm);
@@ -145,7 +136,6 @@ function fecharModal() {
     document.body.style.overflow = '';
 }
 
-// Fechar modal ao clicar fora
 document.addEventListener('click', (e) => {
     const modal = document.getElementById('confirmModal');
     if (e.target === modal) {
@@ -160,8 +150,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-
-// Exportar CSV
 function exportarCSV() {
     const registros = carregarDados();
     
@@ -170,7 +158,6 @@ function exportarCSV() {
         return;
     }
     
-    // Cabeçalho com BOM UTF-8
     let csv = '\uFEFF';
     csv += 'Data;Entrada;Saída;Total Trabalhado;Horas Extras\n';
     
@@ -192,12 +179,10 @@ function exportarCSV() {
     link.click();
 }
 
-// Agrupar registros por data
 function agruparRegistrosPorData(registros) {
     const mapa = new Map();
     
     registros.forEach(reg => {
-        // Se já vem agrupado (tem entrada/saida), só passar direto
         if (reg.entrada && reg.saida) {
             if (!mapa.has(reg.data)) {
                 mapa.set(reg.data, { entrada: reg.entrada, saida: reg.saida });
@@ -205,7 +190,6 @@ function agruparRegistrosPorData(registros) {
             return;
         }
         
-        // Caso contrário, agrupar pelo campo 'hora'
         if (!reg.data || !reg.hora) {
             console.warn('⚠️ Registro inválido:', JSON.stringify(reg));
             return;
@@ -233,7 +217,6 @@ function agruparRegistrosPorData(registros) {
     }));
 }
 
-// Proteção de acesso: redireciona para login se não estiver autenticado
 (function(){
     const paginasProtegidas = [
         'dashboard.html',
@@ -250,7 +233,6 @@ function agruparRegistrosPorData(registros) {
     }
 })();
 
-// Timer em tempo real no header
 function iniciarTimerHeader() {
     const timerDisplay = document.getElementById('timerDisplay');
     if (!timerDisplay) return;
@@ -267,18 +249,14 @@ function iniciarTimerHeader() {
             return;
         }
         
-        // Ordenar por hora
         registrosHoje.sort((a, b) => a.hora.localeCompare(b.hora));
         
-        // Pegar primeiro e último registro
         const entrada = registrosHoje[0].hora;
         const agora = new Date();
         const horaAtual = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
         
-        // Se tem saída, usar ela; senão, usar hora atual
         const saida = registrosHoje.length > 1 ? registrosHoje[registrosHoje.length - 1].hora : horaAtual;
         
-        // Calcular diferença
         const [hE, mE] = entrada.split(':').map(Number);
         const [hS, mS] = saida.split(':').map(Number);
         
@@ -286,29 +264,24 @@ function iniciarTimerHeader() {
         const horas = Math.floor(totalMinutos / 60);
         const minutos = totalMinutos % 60;
         
-        // Atualizar display
         timerDisplay.textContent = `⏱️ ${horas}h ${minutos}min`;
         
-        // Adicionar indicador se ainda está trabalhando
         if (registrosHoje.length % 2 !== 0) {
-            timerDisplay.style.color = '#10b981'; // Verde = trabalhando
+            timerDisplay.style.color = '#10b981';
         } else {
             timerDisplay.style.color = 'var(--text-color)';
         }
     }
     
-    // Atualizar a cada segundo
     atualizarTimer();
     setInterval(atualizarTimer, 1000);
 }
 
-// Iniciar timer quando DOM carregar
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', iniciarTimerHeader);
 } else {
     iniciarTimerHeader();
 }
 
-// Tornar funções disponíveis globalmente para uso em onclick inline no HTML
 window.limparDados = limparDados;
 window.exportarCSV = exportarCSV;

@@ -1,27 +1,16 @@
-// error-handler.js - Gerenciador global de erros
+// Gerenciador global de erros
 
-/**
- * Error Handler com captura global e notificações amigáveis
- * Captura:
- * - Erros de JavaScript não tratados
- * - Promises rejeitadas sem catch
- * - Erros de rede
- */
 class ErrorHandler {
     constructor() {
         this.errorLog = [];
-        this.maxLogSize = 50; // Manter últimos 50 erros
+        this.maxLogSize = 50;
         this.isDevelopment = window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1';
         
         this.init();
     }
 
-    /**
-     * Inicializar listeners globais
-     */
     init() {
-        // Erros de JavaScript
         window.addEventListener('error', (event) => {
             this.handleError({
                 type: 'JavaScript Error',
@@ -34,7 +23,6 @@ class ErrorHandler {
             });
         });
 
-        // Promises não tratadas
         window.addEventListener('unhandledrejection', (event) => {
             this.handleError({
                 type: 'Unhandled Promise',
@@ -47,17 +35,12 @@ class ErrorHandler {
         console.log('✅ Error Handler inicializado');
     }
 
-    /**
-     * Processar erro capturado
-     */
     handleError(errorInfo) {
-        // Adicionar ao log
         this.errorLog.push(errorInfo);
         if (this.errorLog.length > this.maxLogSize) {
-            this.errorLog.shift(); // Remove o mais antigo
+            this.errorLog.shift();
         }
 
-        // Log detalhado no console (dev)
         if (this.isDevelopment) {
             console.group('🔥 Erro Capturado');
             console.error('Tipo:', errorInfo.type);
@@ -71,16 +54,9 @@ class ErrorHandler {
             console.groupEnd();
         }
 
-        // Notificação amigável para o usuário
         this.showUserNotification(errorInfo);
-
-        // TODO: Enviar para serviço de logging (Sentry, LogRocket, etc)
-        // this.sendToAnalytics(errorInfo);
     }
 
-    /**
-     * Mostrar notificação amigável para o usuário
-     */
     showUserNotification(errorInfo) {
         const friendlyMessages = {
             'NetworkError': 'Sem conexão com a internet',
@@ -92,7 +68,6 @@ class ErrorHandler {
 
         let userMessage = 'Ops! Algo deu errado';
 
-        // Buscar mensagem amigável
         for (const [key, message] of Object.entries(friendlyMessages)) {
             if (errorInfo.message?.includes(key)) {
                 userMessage = message;
@@ -100,20 +75,13 @@ class ErrorHandler {
             }
         }
 
-        // Usar sistema de notificação se disponível
         if (typeof mostrarNotificacao === 'function') {
             mostrarNotificacao(userMessage, 'error');
         } else {
-            // Fallback para console
             console.error('❌', userMessage);
         }
     }
 
-    /**
-     * Capturar erro manualmente
-     * @param {Error} error - Objeto de erro
-     * @param {Object} context - Contexto adicional
-     */
     capture(error, context = {}) {
         this.handleError({
             type: 'Manual Capture',
@@ -124,23 +92,14 @@ class ErrorHandler {
         });
     }
 
-    /**
-     * Obter log de erros
-     */
     getErrorLog() {
         return [...this.errorLog];
     }
 
-    /**
-     * Limpar log
-     */
     clearLog() {
         this.errorLog = [];
     }
 
-    /**
-     * Gerar relatório de erros (para debug)
-     */
     generateReport() {
         return {
             totalErrors: this.errorLog.length,
@@ -155,9 +114,6 @@ class ErrorHandler {
         };
     }
 
-    /**
-     * Exportar relatório como JSON
-     */
     downloadReport() {
         const report = this.generateReport();
         const blob = new Blob([JSON.stringify(report, null, 2)], { 
@@ -172,14 +128,8 @@ class ErrorHandler {
     }
 }
 
-// Instância global
 const errorHandler = new ErrorHandler();
 
-/**
- * Helper para try/catch assíncrono
- * @param {Function} fn - Função async
- * @param {*} fallback - Valor de retorno em caso de erro
- */
 async function tryCatch(fn, fallback = null) {
     try {
         return await fn();
@@ -189,10 +139,6 @@ async function tryCatch(fn, fallback = null) {
     }
 }
 
-/**
- * Wrapper para eventos assíncronos
- * @param {Function} handler - Event handler async
- */
 function asyncHandler(handler) {
     return function(...args) {
         Promise.resolve(handler.apply(this, args))
@@ -200,7 +146,6 @@ function asyncHandler(handler) {
     };
 }
 
-// Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ErrorHandler, errorHandler, tryCatch, asyncHandler };
 }
