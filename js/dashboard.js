@@ -80,16 +80,19 @@ function filtrarDadosPorPeriodo() {
 function calcularMetricas(dados) {
     let totalMinutosTrabalhados = 0;
     let totalMinutosExtras = 0;
+    let totalMinutosAlmoco = 0;
     let diasTrabalhados = 0;
     let diasComExtra = 0;
     
     dados.forEach(reg => {
         if (reg.entrada && reg.saida) {
-            const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
-            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
+            const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const almoco = calcularTempoAlmoco(reg.almoco_saida, reg.almoco_volta);
             
             totalMinutosTrabalhados += total;
             totalMinutosExtras += extras;
+            totalMinutosAlmoco += almoco;
             diasTrabalhados++;
             
             if (extras > 0) {
@@ -99,6 +102,7 @@ function calcularMetricas(dados) {
     });
     
     const mediaDiaria = diasTrabalhados > 0 ? Math.floor(totalMinutosTrabalhados / diasTrabalhados) : 0;
+    const mediaAlmoco = diasTrabalhados > 0 ? Math.floor(totalMinutosAlmoco / diasTrabalhados) : 0;
     const percentualExtras = totalMinutosTrabalhados > 0 
         ? ((totalMinutosExtras / totalMinutosTrabalhados) * 100).toFixed(1)
         : 0;
@@ -106,9 +110,11 @@ function calcularMetricas(dados) {
     return {
         totalMinutosTrabalhados,
         totalMinutosExtras,
+        totalMinutosAlmoco,
         diasTrabalhados,
         diasComExtra,
         mediaDiaria,
+        mediaAlmoco,
         percentualExtras
     };
 }
@@ -116,11 +122,13 @@ function calcularMetricas(dados) {
 function atualizarKPIs(metricas) {
     const totalTrabalhado = document.getElementById('totalTrabalhado');
     const horasExtras = document.getElementById('horasExtras');
+    const tempoAlmoco = document.getElementById('tempoAlmoco');
     const mediaDiaria = document.getElementById('mediaDiaria');
     const diasTrabalhados = document.getElementById('diasTrabalhados');
     
     if (totalTrabalhado) totalTrabalhado.textContent = formatarMinutosParaHoras(metricas.totalMinutosTrabalhados);
     if (horasExtras) horasExtras.textContent = formatarMinutosParaHoras(metricas.totalMinutosExtras);
+    if (tempoAlmoco) tempoAlmoco.textContent = formatarMinutosParaHoras(metricas.totalMinutosAlmoco);
     if (mediaDiaria) mediaDiaria.textContent = formatarMinutosParaHoras(metricas.mediaDiaria);
     if (diasTrabalhados) diasTrabalhados.textContent = metricas.diasTrabalhados;
 }
@@ -152,29 +160,26 @@ function criarGraficoBarras(dados) {
             semanas.set(chave, { normal: 0, extras: 0 });
         }
         
-        const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
-        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
+        const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
         const normal = total - extras;
         
-        semanas.get(chave).normal += normal / 60;
-        semanas.get(chave).extras += extras / 60;
+        const atual = semanas.get(chave);
+        semanas.set(chave, {
+            normal: atual.normal + (normal / 60),
+            extras: atual.extras + (extras / 60)
+        });
     });
     
     // Inverter a ordem para mostrar da esquerda para direita (mais antiga → mais recente)
     const labels = Array.from(semanas.keys()).reverse();
-    const dataNormal = labels.map(label => semanas.get(label).normal.toFixed(2));
-    const dataExtras = labels.map(label => semanas.get(label).extras.toFixed(2));
+    const dataNormal = labels.map(label => Math.round(semanas.get(label).normal * 100) / 100);
+    const dataExtras = labels.map(label => Math.round(semanas.get(label).extras * 100) / 100);
     
     const isDark = document.body.classList.contains('dark-theme');
-    const textColor = isDark ? '#FFFFFF' : '#1E293B'; // Branco no escuro, preto no claro
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    
-    // Adicionar classe updating ao container
-    const container = document.querySelector('.chart-container');
-    if (container) {
-        container.classList.add('updating');
-        setTimeout(() => container.classList.remove('updating'), 500);
-    }
+    const textColor = isDark ? '#E5E7EB' : '#1E293B';
+    const titleColor = isDark ? '#F9FAFB' : '#111827';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)';
     
     chartBarras = new Chart(ctx, {
         type: 'bar',
@@ -184,50 +189,93 @@ function criarGraficoBarras(dados) {
                 {
                     label: 'Horas Normais',
                     data: dataNormal,
-                    backgroundColor: isDark ? '#60A5FA' : '#3B82F6',
+                    backgroundColor: '#60A5FA',
                     borderRadius: 8,
-                    borderWidth: 0
+                    borderWidth: 0,
+                    barThickness: 25,
+                    maxBarThickness: 40
                 },
                 {
                     label: 'Horas Extras',
                     data: dataExtras,
-                    backgroundColor: isDark ? '#FBBF24' : '#F59E0B',
+                    backgroundColor: '#F59E0B',
                     borderRadius: 8,
-                    borderWidth: 0
+                    borderWidth: 0,
+                    barThickness: 25,
+                    maxBarThickness: 40
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            categoryPercentage: 0.5,
+            barPercentage: 0.8,
             layout: {
-                padding: 0
+                padding: { top: 30, left: 10, right: 10, bottom: 5 }
             },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: { 
-                        color: textColor,
-                        font: { size: 14, weight: '600' },
-                        padding: 18,
+                        color: titleColor,
+                        font: { size: 13, weight: '600', family: "'Inter', 'Roboto', sans-serif" },
+                        padding: 16,
                         usePointStyle: true,
-                        pointStyle: 'circle'
+                        pointStyle: 'circle',
+                        boxWidth: 8,
+                        boxHeight: 8
                     }
                 },
                 tooltip: {
-                    backgroundColor: isDark ? '#1E293B' : 'rgba(255, 255, 255, 0.95)',
-                    titleColor: isDark ? '#F8FAFC' : '#1E293B',
-                    bodyColor: isDark ? '#F8FAFC' : '#1E293B',
-                    borderColor: isDark ? '#2563EB' : 'rgba(148, 163, 184, 0.3)',
-                    borderWidth: 2,
+                    backgroundColor: isDark ? '#1F2937' : 'rgba(255, 255, 255, 0.95)',
+                    titleColor: isDark ? '#F9FAFB' : '#111827',
+                    bodyColor: isDark ? '#E5E7EB' : '#374151',
+                    borderColor: isDark ? '#374151' : 'rgba(148, 163, 184, 0.3)',
+                    borderWidth: 1,
                     padding: 12,
                     displayColors: true,
-                    titleFont: { size: 13, weight: 'bold' },
-                    bodyFont: { size: 12 },
+                    titleFont: { size: 13, weight: 'bold', family: "'Inter', 'Roboto', sans-serif" },
+                    bodyFont: { size: 12, family: "'Inter', 'Roboto', sans-serif" },
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    boxPadding: 6,
                     callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
                         label: function(context) {
-                            return context.dataset.label + ': ' + context.parsed.y + 'h';
+                            const label = context.dataset.label || '';
+                            const value = Math.round(context.parsed.y * 10) / 10;
+                            return `${label}: ${value}h`;
+                        },
+                        afterBody: function(context) {
+                            const index = context[0].dataIndex;
+                            const total = dataNormal[index] + dataExtras[index];
+                            return `\n━━━━━━━━━━\nTotal: ${Math.round(total * 10) / 10}h`;
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        metaLine: {
+                            type: 'line',
+                            yMin: 44,
+                            yMax: 44,
+                            borderColor: '#EF4444',
+                            borderWidth: 1.5,
+                            borderDash: [6, 3],
+                            label: {
+                                display: true,
+                                content: 'Meta semanal (44h)',
+                                position: 'start',
+                                backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                                color: '#FFFFFF',
+                                font: { size: 11, weight: 'bold', family: "'Inter', 'Roboto', sans-serif" },
+                                padding: { top: 4, bottom: 4, left: 8, right: 8 },
+                                borderRadius: 4
+                            }
                         }
                     }
                 }
@@ -237,22 +285,25 @@ function criarGraficoBarras(dados) {
                     stacked: true,
                     ticks: { 
                         color: textColor,
-                        font: { size: 12, weight: '500' }
+                        font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
+                        maxRotation: 45,
+                        minRotation: 45
                     },
                     grid: { 
-                        display: false,
-                        color: gridColor
+                        display: false
                     },
                     border: {
-                        color: textColor
+                        display: false
                     }
                 },
                 y: {
                     stacked: true,
                     beginAtZero: true,
+                    max: 80,
                     ticks: { 
                         color: textColor,
-                        font: { size: 12, weight: '500' },
+                        font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
+                        stepSize: 10,
                         callback: function(value) {
                             return value + 'h';
                         }
@@ -260,15 +311,39 @@ function criarGraficoBarras(dados) {
                     grid: { 
                         color: gridColor,
                         drawBorder: false,
-                        lineWidth: 1,
+                        lineWidth: 0.5,
                         borderDash: [4, 4]
                     },
                     border: {
-                        color: textColor
+                        display: false
                     }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'topLabels',
+            afterDatasetsDraw: function(chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (!meta.hidden && i === chart.data.datasets.length - 1) {
+                        meta.data.forEach((element, index) => {
+                            const normal = dataNormal[index];
+                            const extras = dataExtras[index];
+                            const total = Math.round((normal + extras) * 10) / 10;
+                            const x = element.x;
+                            const y = element.y - 8;
+                            
+                            ctx.fillStyle = titleColor;
+                            ctx.font = `bold 11px 'Inter', 'Roboto', sans-serif`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(Math.round(total) + 'h', x, y);
+                        });
+                    }
+                });
+            }
+        }]
     });
 }
 
@@ -283,68 +358,105 @@ function criarGraficoLinha(dados) {
         chartLinha.destroy();
     }
     
-    const dadosOrdenados = [...dados].sort((a, b) => new Date(a.data) - new Date(b.data));
+    // Agrupar por semana (igual ao gráfico de barras)
+    const semanas = new Map();
     
-    const labels = dadosOrdenados.map(r => formatarData(r.data));
-    const dataExtras = dadosOrdenados.map(r => {
-        if (!r.entrada || !r.saida) return 0;
-        return (calcularHorasExtras(r.data, r.entrada, r.saida) / 60).toFixed(2);
+    dados.forEach(reg => {
+        if (!reg.entrada || !reg.saida) return;
+        
+        const data = new Date(reg.data);
+        const ano = data.getFullYear();
+        const semana = getWeekNumber(data);
+        const chave = `${ano}-S${semana}`;
+        
+        if (!semanas.has(chave)) {
+            semanas.set(chave, 0);
+        }
+        
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const valorAtual = semanas.get(chave);
+        semanas.set(chave, valorAtual + (extras / 60));
     });
     
+    const labels = Array.from(semanas.keys()).reverse();
+    const dataExtras = labels.map(label => Math.round(semanas.get(label) * 100) / 100);
+    
     const isDark = document.body.classList.contains('dark-theme');
-    const textColor = isDark ? '#FFFFFF' : '#1E293B'; // Branco no escuro, preto no claro
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = isDark ? '#E5E7EB' : '#1E293B';
+    const titleColor = isDark ? '#F9FAFB' : '#111827';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)';
     
     chartLinha = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Horas Extras',
-                data: dataExtras,
-                borderColor: isDark ? '#FBBF24' : '#F59E0B',
-                backgroundColor: isDark ? 'rgba(251, 191, 36, 0.15)' : 'rgba(245, 158, 11, 0.1)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: isDark ? '#FBBF24' : '#F59E0B',
-                pointBorderColor: isDark ? '#1E293B' : '#fff',
-                pointBorderWidth: 3,
-                pointRadius: 6,
-                pointHoverRadius: 8
-            }]
+            datasets: [
+                {
+                    label: 'Horas Extras',
+                    data: dataExtras,
+                    borderColor: '#F59E0B',
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#F59E0B',
+                    pointBorderColor: isDark ? '#111827' : '#fff',
+                    pointBorderWidth: 2
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             layout: {
-                padding: 0
+                padding: { top: 10, left: 10, right: 10, bottom: 5 }
             },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: { 
-                        color: textColor,
-                        font: { size: 14, weight: '600' },
-                        padding: 18,
+                        color: titleColor,
+                        font: { size: 13, weight: '600', family: "'Inter', 'Roboto', sans-serif" },
+                        padding: 14,
                         usePointStyle: true,
-                        pointStyle: 'circle'
+                        pointStyle: 'circle',
+                        boxWidth: 8,
+                        boxHeight: 8
                     }
                 },
                 tooltip: {
-                    backgroundColor: isDark ? '#1E293B' : 'rgba(255, 255, 255, 0.95)',
-                    titleColor: isDark ? '#F8FAFC' : '#1E293B',
-                    bodyColor: isDark ? '#F8FAFC' : '#1E293B',
-                    borderColor: isDark ? '#2563EB' : 'rgba(148, 163, 184, 0.3)',
-                    borderWidth: 2,
+                    backgroundColor: isDark ? '#1F2937' : 'rgba(255, 255, 255, 0.95)',
+                    titleColor: isDark ? '#F9FAFB' : '#111827',
+                    bodyColor: isDark ? '#E5E7EB' : '#374151',
+                    borderColor: isDark ? '#374151' : 'rgba(148, 163, 184, 0.3)',
+                    borderWidth: 1,
                     padding: 12,
                     displayColors: true,
-                    titleFont: { size: 13, weight: 'bold' },
-                    bodyFont: { size: 12 },
+                    titleFont: { size: 13, weight: 'bold', family: "'Inter', 'Roboto', sans-serif" },
+                    bodyFont: { size: 12, family: "'Inter', 'Roboto', sans-serif" },
+                    boxWidth: 10,
+                    boxHeight: 10,
                     callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
                         label: function(context) {
-                            return 'Extras: ' + context.parsed.y + 'h';
+                            const value = context.parsed.y;
+                            if (value === null || !isFinite(value) || isNaN(value)) {
+                                return '';
+                            }
+                            
+                            const label = context.dataset.label || '';
+                            return `${label}: ${value.toFixed(1)}h extras`;
+                        },
+                        afterBody: function(context) {
+                            if (context[0].datasetIndex === 1) {
+                                return '\n━━━━━━━━━━\n💡 Média das últimas 3 semanas';
+                            }
+                            return '';
                         }
                     }
                 }
@@ -353,23 +465,22 @@ function criarGraficoLinha(dados) {
                 x: {
                     ticks: { 
                         color: textColor,
-                        font: { size: 12, weight: '500' },
+                        font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
                         maxRotation: 45,
-                        minRotation: 0
+                        minRotation: 45
                     },
                     grid: { 
-                        display: false,
-                        color: gridColor
+                        display: false
                     },
                     border: {
-                        color: textColor
+                        display: false
                     }
                 },
                 y: {
                     beginAtZero: true,
                     ticks: { 
                         color: textColor,
-                        font: { size: 12, weight: '500' },
+                        font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
                         callback: function(value) {
                             return value + 'h';
                         }
@@ -377,11 +488,11 @@ function criarGraficoLinha(dados) {
                     grid: { 
                         color: gridColor,
                         drawBorder: false,
-                        lineWidth: 1,
+                        lineWidth: 0.5,
                         borderDash: [4, 4]
                     },
                     border: {
-                        color: textColor
+                        display: false
                     }
                 }
             }
@@ -413,8 +524,8 @@ function criarTabelaSemanal(dados) {
         
         const s = semanas.get(chave);
         s.dias++;
-        s.total += calcularTotalTrabalhado(reg.entrada, reg.saida);
-        s.extras += calcularHorasExtras(reg.data, reg.entrada, reg.saida);
+        s.total += calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        s.extras += calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
     });
     
     if (semanas.size === 0) {
@@ -633,7 +744,7 @@ function atualizarCardHoje() {
         }
         
         // Calcular horas trabalhadas
-        const totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida);
+        const totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
         const horas = Math.floor(totalMin / 60);
         const minutos = totalMin % 60;
         
@@ -642,7 +753,7 @@ function atualizarCardHoje() {
         }
         
         // Calcular hora extra
-        const extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida);
+        const extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
         if (document.getElementById('hojeExtra')) {
             if (extrasMin > 0) {
                 const horasExtra = Math.floor(extrasMin / 60);
@@ -690,59 +801,149 @@ function criarGraficoPizza(dados) {
         dados.forEach(reg => {
             const data = new Date(reg.data + 'T00:00:00');
             const diaSemana = data.getDay();
-            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
+            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
             horasPorDia[diaSemana] += totalMin / 60;
         });
         
-        // Cores vibrantes para cada dia
+        // Arredondar para evitar problemas de precisão
+        const horasPorDiaArredondado = horasPorDia.map(h => Math.round(h * 100) / 100);
+        
+        // Manter a ordem cronológica (Dom → Sáb)
+        const labels = diasSemana;
+        const horas = horasPorDiaArredondado;
+        const totalHoras = horas.reduce((a, b) => a + b, 0);
+        
+        // Paleta cronológica suave
         const cores = [
-            '#ef4444', // Domingo - Vermelho
-            '#3b82f6', // Segunda - Azul
-            '#10b981', // Terça - Verde
-            '#f59e0b', // Quarta - Laranja
-            '#8b5cf6', // Quinta - Roxo
-            '#ec4899', // Sexta - Rosa
-            '#f97316'  // Sábado - Laranja escuro
+            '#FCA5A5', // Dom - Vermelho suave
+            '#60A5FA', // Seg - Azul
+            '#34D399', // Ter - Verde
+            '#FBBF24', // Qua - Amarelo
+            '#A78BFA', // Qui - Roxo
+            '#EC4899', // Sex - Rosa
+            '#FB923C'  // Sáb - Laranja
         ];
         
+        const isDark = document.body.classList.contains('dark-theme');
+        const textColor = isDark ? '#E5E7EB' : '#1E293B';
+        const titleColor = isDark ? '#F9FAFB' : '#111827';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)';
+        
         chartPizza = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
-                labels: diasSemana,
+                labels: labels,
                 datasets: [{
-                    data: horasPorDia,
+                    label: 'Horas trabalhadas',
+                    data: horas,
                     backgroundColor: cores,
-                    borderWidth: 2,
-                    borderColor: getComputedStyle(document.body).getPropertyValue('--body-color')
+                    borderRadius: 8,
+                    borderWidth: 0,
+                    barPercentage: 0.6
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: { 
+                        right: 80, 
+                        left: 10, 
+                        top: 10, 
+                        bottom: 10 
+                    }
+                },
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
-                            padding: 15,
-                            font: { size: 12 }
-                        }
+                        display: false
                     },
                     tooltip: {
+                        backgroundColor: isDark ? '#1F2937' : 'rgba(255, 255, 255, 0.95)',
+                        titleColor: isDark ? '#F9FAFB' : '#111827',
+                        bodyColor: isDark ? '#E5E7EB' : '#374151',
+                        borderColor: isDark ? '#374151' : 'rgba(148, 163, 184, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        titleFont: { size: 13, weight: 'bold', family: "'Inter', 'Roboto', sans-serif" },
+                        bodyFont: { size: 12, family: "'Inter', 'Roboto', sans-serif" },
                         callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
                             label: function(context) {
-                                const valor = context.parsed;
+                                const valor = context.parsed.x;
+                                const percentual = ((valor / totalHoras) * 100).toFixed(1);
                                 const horas = Math.floor(valor);
                                 const minutos = Math.round((valor % 1) * 60);
-                                return `${context.label}: ${horas}h ${minutos}min`;
+                                return `${horas}h ${minutos}min (${percentual}% do total)`;
                             }
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
+                            callback: function(value) {
+                                return value + 'h';
+                            }
+                        },
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false,
+                            lineWidth: 0.5,
+                            borderDash: [4, 4]
+                        },
+                        border: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: titleColor,
+                            font: { size: 12, weight: '600', family: "'Inter', 'Roboto', sans-serif" }
+                        },
+                        grid: {
+                            display: false
+                        },
+                        border: {
+                            display: false
+                        }
+                    }
                 }
-            }
+            },
+            plugins: [{
+                id: 'barLabels',
+                afterDatasetsDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        if (!meta.hidden) {
+                            meta.data.forEach((element, index) => {
+                                const valor = horas[index];
+                                const percentual = Math.round((valor / totalHoras) * 100);
+                                const x = element.x + 8;
+                                const y = element.y + 1;
+                                
+                                ctx.fillStyle = '#F9FAFB';
+                                ctx.font = `bold 11px 'Inter', 'Roboto', sans-serif`;
+                                ctx.textAlign = 'left';
+                                ctx.textBaseline = 'middle';
+                                
+                                const label = `${Math.round(valor * 10) / 10}h (${percentual}%)`;
+                                ctx.fillText(label, x, y);
+                            });
+                        }
+                    });
+                }
+            }]
         });
+        
     } catch (error) {
-        console.error('❌ Erro ao criar gráfico de pizza:', error);
+        console.error('❌ Erro ao criar gráfico de distribuição:', error);
     }
 }
 
@@ -752,3 +953,411 @@ setInterval(() => {
         atualizarCardHoje();
     }
 }, 60000); // Atualizar a cada minuto
+
+// ============================================
+// FUNÇÕES DO MENU DE GRÁFICOS
+// ============================================
+
+function toggleChartMenu(event, menuId) {
+    event.stopPropagation();
+    const menu = document.getElementById(menuId);
+    const allMenus = document.querySelectorAll('.chart-menu');
+    
+    // Fechar outros menus
+    allMenus.forEach(m => {
+        if (m.id !== menuId) {
+            m.classList.remove('active');
+        }
+    });
+    
+    // Toggle do menu atual
+    menu.classList.toggle('active');
+}
+
+function closeChartMenu(menuId) {
+    const menu = document.getElementById(menuId);
+    menu.classList.remove('active');
+}
+
+// Fechar menus ao clicar fora
+document.addEventListener('click', () => {
+    const allMenus = document.querySelectorAll('.chart-menu');
+    allMenus.forEach(m => m.classList.remove('active'));
+});
+
+// ============================================
+// FUNÇÕES DE ANÁLISE DOS GRÁFICOS
+// ============================================
+
+function abrirAnaliseBarras() {
+    const dados = filtrarDadosPorPeriodo();
+    const semanas = new Map();
+    
+    dados.forEach(reg => {
+        if (!reg.entrada || !reg.saida) return;
+        const data = new Date(reg.data);
+        const ano = data.getFullYear();
+        const semana = getWeekNumber(data);
+        const chave = `${ano}-S${semana}`;
+        
+        if (!semanas.has(chave)) {
+            semanas.set(chave, { normal: 0, extras: 0 });
+        }
+        
+        const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const normal = total - extras;
+        
+        const atual = semanas.get(chave);
+        semanas.set(chave, {
+            normal: atual.normal + (normal / 60),
+            extras: atual.extras + (extras / 60)
+        });
+    });
+    
+    const valores = Array.from(semanas.values());
+    const totais = valores.map(v => v.normal + v.extras);
+    const mediaHoras = totais.reduce((a, b) => a + b, 0) / totais.length;
+    const maxHoras = Math.max(...totais);
+    const minHoras = Math.min(...totais);
+    const acimaMeta = totais.filter(t => t >= 44).length;
+    const percentualMeta = ((acimaMeta / totais.length) * 100).toFixed(1);
+    
+    const content = `
+        <div class="analysis-section">
+            <h4><i class="ri-bar-chart-line"></i> Resumo Geral</h4>
+            <p>📊 Total de semanas analisadas: <span class="analysis-highlight">${totais.length}</span></p>
+            <p>⏱️ Média semanal: <span class="analysis-highlight">${mediaHoras.toFixed(1)}h</span></p>
+            <p>📈 Semana com mais horas: <span class="analysis-highlight">${maxHoras.toFixed(1)}h</span></p>
+            <p>📉 Semana com menos horas: <span class="analysis-highlight">${minHoras.toFixed(1)}h</span></p>
+        </div>
+        
+        <div class="analysis-section">
+            <h4><i class="ri-target-line"></i> Cumprimento de Meta</h4>
+            <p>🎯 Meta semanal: <span class="analysis-highlight">44h</span></p>
+            <p>✅ Semanas que atingiram a meta: <span class="analysis-highlight">${acimaMeta} de ${totais.length} (${percentualMeta}%)</span></p>
+            <p>${mediaHoras >= 44 ? '🎉 Parabéns! Você está acima da média da meta.' : '💪 Continue se esforçando para atingir a meta!'}</p>
+        </div>
+    `;
+    
+    mostrarAnalise('Análise - Horas Semanais', content);
+}
+
+function abrirAnaliseDistribuicao() {
+    const dados = filtrarDadosPorPeriodo();
+    const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const horasPorDia = new Array(7).fill(0);
+    const diasContados = new Array(7).fill(0);
+    
+    dados.forEach(reg => {
+        const data = new Date(reg.data + 'T00:00:00');
+        const diaSemana = data.getDay();
+        const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        horasPorDia[diaSemana] += totalMin / 60;
+        diasContados[diaSemana]++;
+    });
+    
+    const totalHoras = horasPorDia.reduce((a, b) => a + b, 0);
+    const diaComMaisHoras = horasPorDia.indexOf(Math.max(...horasPorDia));
+    const diaComMenosHoras = horasPorDia.indexOf(Math.min(...horasPorDia.filter(h => h > 0)));
+    
+    const content = `
+        <div class="analysis-section">
+            <h4><i class="ri-calendar-line"></i> Distribuição por Dia</h4>
+            <p>📅 Total de horas trabalhadas: <span class="analysis-highlight">${totalHoras.toFixed(1)}h</span></p>
+            <p>🏆 Dia com mais horas: <span class="analysis-highlight">${diasSemana[diaComMaisHoras]} (${horasPorDia[diaComMaisHoras].toFixed(1)}h)</span></p>
+            <p>📉 Dia com menos horas: <span class="analysis-highlight">${diasSemana[diaComMenosHoras]} (${horasPorDia[diaComMenosHoras].toFixed(1)}h)</span></p>
+        </div>
+        
+        <div class="analysis-section">
+            <h4><i class="ri-pie-chart-line"></i> Percentuais</h4>
+            ${diasSemana.map((dia, i) => {
+                const percentual = ((horasPorDia[i] / totalHoras) * 100).toFixed(1);
+                const dias = diasContados[i];
+                return `<p>• ${dia}: <span class="analysis-highlight">${percentual}%</span> (${horasPorDia[i].toFixed(1)}h em ${dias} dia${dias !== 1 ? 's' : ''})</p>`;
+            }).join('')}
+        </div>
+    `;
+    
+    mostrarAnalise('Análise - Distribuição Semanal', content);
+}
+
+function abrirAnaliseExtras() {
+    const dados = filtrarDadosPorPeriodo();
+    const semanas = new Map();
+    
+    dados.forEach(reg => {
+        if (!reg.entrada || !reg.saida) return;
+        const data = new Date(reg.data);
+        const ano = data.getFullYear();
+        const semana = getWeekNumber(data);
+        const chave = `${ano}-S${semana}`;
+        
+        if (!semanas.has(chave)) {
+            semanas.set(chave, 0);
+        }
+        
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        semanas.set(chave, semanas.get(chave) + (extras / 60));
+    });
+    
+    const valores = Array.from(semanas.values());
+    const totalExtras = valores.reduce((a, b) => a + b, 0);
+    const mediaExtras = totalExtras / valores.length;
+    const maxExtras = Math.max(...valores);
+    const semanasComExtras = valores.filter(v => v > 0).length;
+    const percentualExtras = ((semanasComExtras / valores.length) * 100).toFixed(1);
+    
+    const content = `
+        <div class="analysis-section">
+            <h4><i class="ri-time-line"></i> Resumo de Horas Extras</h4>
+            <p>⚡ Total de horas extras: <span class="analysis-highlight">${totalExtras.toFixed(1)}h</span></p>
+            <p>📊 Média semanal: <span class="analysis-highlight">${mediaExtras.toFixed(1)}h</span></p>
+            <p>📈 Semana com mais extras: <span class="analysis-highlight">${maxExtras.toFixed(1)}h</span></p>
+            <p>📅 Semanas com horas extras: <span class="analysis-highlight">${semanasComExtras} de ${valores.length} (${percentualExtras}%)</span></p>
+        </div>
+        
+        <div class="analysis-section">
+            <h4><i class="ri-lightbulb-line"></i> Recomendações</h4>
+            ${mediaExtras > 8 
+                ? '<p>⚠️ Sua média de horas extras está acima da meta de 8h/semana. Considere revisar sua carga de trabalho.</p>' 
+                : '<p>✅ Sua média de horas extras está dentro da meta de 8h/semana. Continue assim!</p>'}
+            <p>💡 Dica: Tente distribuir melhor suas tarefas ao longo da semana para evitar picos de trabalho.</p>
+        </div>
+    `;
+    
+    mostrarAnalise('Análise - Horas Extras', content);
+}
+
+function mostrarAnalise(titulo, conteudo) {
+    const modal = document.getElementById('analysisModal');
+    const title = document.getElementById('analysisTitle');
+    const content = document.getElementById('analysisContent');
+    
+    title.textContent = titulo;
+    content.innerHTML = conteudo;
+    modal.classList.add('active');
+}
+
+function fecharAnalise() {
+    const modal = document.getElementById('analysisModal');
+    modal.classList.remove('active');
+}
+
+// ============================================
+// FUNÇÕES DE EXPORTAR E COMPARTILHAR
+// ============================================
+
+function exportarDados(tipo) {
+    const dados = filtrarDadosPorPeriodo();
+    let csv = '';
+    let filename = '';
+    
+    if (tipo === 'barras') {
+        csv = 'Semana,Horas Normais,Horas Extras,Total\n';
+        const semanas = new Map();
+        
+        dados.forEach(reg => {
+            if (!reg.entrada || !reg.saida) return;
+            const data = new Date(reg.data);
+            const ano = data.getFullYear();
+            const semana = getWeekNumber(data);
+            const chave = `${ano}-S${semana}`;
+            
+            if (!semanas.has(chave)) {
+                semanas.set(chave, { normal: 0, extras: 0 });
+            }
+            
+            const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const normal = total - extras;
+            
+            const atual = semanas.get(chave);
+            semanas.set(chave, {
+                normal: atual.normal + (normal / 60),
+                extras: atual.extras + (extras / 60)
+            });
+        });
+        
+        semanas.forEach((valor, chave) => {
+            const total = valor.normal + valor.extras;
+            csv += `${chave},${valor.normal.toFixed(2)},${valor.extras.toFixed(2)},${total.toFixed(2)}\n`;
+        });
+        
+        filename = 'horas-semanais.csv';
+    } else if (tipo === 'distribuicao') {
+        csv = 'Dia da Semana,Horas Trabalhadas\n';
+        const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const horasPorDia = new Array(7).fill(0);
+        
+        dados.forEach(reg => {
+            const data = new Date(reg.data + 'T00:00:00');
+            const diaSemana = data.getDay();
+            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            horasPorDia[diaSemana] += totalMin / 60;
+        });
+        
+        diasSemana.forEach((dia, i) => {
+            csv += `${dia},${horasPorDia[i].toFixed(2)}\n`;
+        });
+        
+        filename = 'distribuicao-semanal.csv';
+    } else if (tipo === 'extras') {
+        csv = 'Semana,Horas Extras\n';
+        const semanas = new Map();
+        
+        dados.forEach(reg => {
+            if (!reg.entrada || !reg.saida) return;
+            const data = new Date(reg.data);
+            const ano = data.getFullYear();
+            const semana = getWeekNumber(data);
+            const chave = `${ano}-S${semana}`;
+            
+            if (!semanas.has(chave)) {
+                semanas.set(chave, 0);
+            }
+            
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            semanas.set(chave, semanas.get(chave) + (extras / 60));
+        });
+        
+        semanas.forEach((valor, chave) => {
+            csv += `${chave},${valor.toFixed(2)}\n`;
+        });
+        
+        filename = 'horas-extras.csv';
+    }
+    
+    // Download do CSV
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    
+    mostrarToast('✅ Dados exportados com sucesso!', 'success');
+}
+
+function compartilharGrafico(nomeGrafico) {
+    if (navigator.share) {
+        navigator.share({
+            title: `Controle de Ponto - ${nomeGrafico}`,
+            text: `Confira meu relatório de ${nomeGrafico}`,
+            url: window.location.href
+        }).then(() => {
+            mostrarToast('✅ Compartilhado com sucesso!', 'success');
+        }).catch(() => {
+            copiarLink();
+        });
+    } else {
+        copiarLink();
+    }
+}
+
+function copiarLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        mostrarToast('🔗 Link copiado para área de transferência!', 'success');
+    });
+}
+
+// ========================================
+// REGISTRO RÁPIDO DE ALMOÇO (Dashboard)
+// ========================================
+
+function abrirRegistroRapido() {
+    const modal = document.getElementById('registroRapidoModal');
+    modal.classList.add('active');
+    
+    // Atualizar hora e data atual
+    atualizarHorarioAtual();
+    
+    // Atualizar a cada segundo
+    if (window.intervalHorarioAtual) {
+        clearInterval(window.intervalHorarioAtual);
+    }
+    window.intervalHorarioAtual = setInterval(atualizarHorarioAtual, 1000);
+}
+
+function fecharRegistroRapido() {
+    const modal = document.getElementById('registroRapidoModal');
+    modal.classList.remove('active');
+    
+    if (window.intervalHorarioAtual) {
+        clearInterval(window.intervalHorarioAtual);
+    }
+}
+
+function atualizarHorarioAtual() {
+    const agora = new Date();
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
+    
+    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
+                   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    
+    const horaDisplay = document.getElementById('horaAtualDisplay');
+    const dataDisplay = document.getElementById('dataAtualDisplay');
+    
+    if (horaDisplay) {
+        horaDisplay.textContent = `${horas}:${minutos}`;
+    }
+    
+    if (dataDisplay) {
+        dataDisplay.textContent = `${diasSemana[agora.getDay()]}, ${agora.getDate()} de ${meses[agora.getMonth()]} de ${agora.getFullYear()}`;
+    }
+}
+
+function registrarHorarioRapido(tipo) {
+    const agora = new Date();
+    const dataHoje = agora.toISOString().split('T')[0];
+    const horaAgora = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+    
+    const registros = carregarDados();
+    
+    // Procurar registro do dia atual
+    let registroHoje = registros.find(r => r.data === dataHoje);
+    
+    if (!registroHoje) {
+        // Criar novo registro para hoje (só com almoço, entrada/saída vêm da catraca)
+        registroHoje = {
+            data: dataHoje,
+            entrada: null,
+            almoco_saida: null,
+            almoco_volta: null,
+            saida: null
+        };
+        registros.push(registroHoje);
+    }
+    
+    // Atualizar APENAS horários de almoço
+    switch(tipo) {
+        case 'almoco_saida':
+            registroHoje.almoco_saida = horaAgora;
+            toast.success(`🍽️ Saída para almoço registrada: ${horaAgora}`);
+            break;
+        case 'almoco_volta':
+            registroHoje.almoco_volta = horaAgora;
+            toast.success(`🍽️ Retorno do almoço registrado: ${horaAgora}`);
+            break;
+        default:
+            toast.error('❌ Tipo de registro inválido!');
+            return;
+    }
+    
+    // Salvar
+    salvarDados(registros);
+    
+    // Atualizar dashboard
+    atualizarDashboard();
+    
+    // Fechar modal após 1.5s
+    setTimeout(() => {
+        fecharRegistroRapido();
+    }, 1500);
+}
+
+// Tornar funções globais
+window.abrirRegistroRapido = abrirRegistroRapido;
+window.fecharRegistroRapido = fecharRegistroRapido;
+window.registrarHorarioRapido = registrarHorarioRapido;

@@ -135,12 +135,13 @@ function renderizarRegistros(registros) {
     let html = '<div class="card">';
     html += '<div style="overflow-x: auto;">';
     html += '<table class="table"><thead><tr>';
-    html += '<th>Data</th><th>Dia</th><th>Entrada</th><th>Saída</th><th>Total</th><th>Hora Extra</th>';
+    html += '<th>Data</th><th>Dia</th><th>Entrada</th><th>Saída Almoço</th><th>Volta Almoço</th><th>Saída</th><th>Tempo Almoço</th><th>Total Trabalhado</th><th>Hora Extra</th>';
     html += '</tr></thead><tbody>';
     
     registrosPaginados.forEach(reg => {
-        const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
-        const extrasMin = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
+        const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const extrasMin = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const tempoAlmocoMin = calcularTempoAlmoco(reg.almoco_saida, reg.almoco_volta);
         const diaSemana = obterDiaDaSemana(reg.data);
         const isFimDeSemana = ehFimDeSemana(reg.data);
         
@@ -164,7 +165,10 @@ function renderizarRegistros(registros) {
         html += `<td><strong>${formatarData(reg.data)}</strong></td>`;
         html += `<td><span class="${badgeDiaClass}">${diaSemana}</span></td>`;
         html += `<td>${reg.entrada || '-'}</td>`;
+        html += `<td>${reg.almoco_saida || '-'}</td>`;
+        html += `<td>${reg.almoco_volta || '-'}</td>`;
         html += `<td>${reg.saida || '-'}</td>`;
+        html += `<td>${tempoAlmocoMin > 0 ? formatarMinutosParaHoras(tempoAlmocoMin) : '-'}</td>`;
         html += `<td><strong>${formatarMinutosParaHoras(totalMin)}</strong></td>`;
         html += `<td><span class="${extraBadgeClass}">${extraPrefix}${formatarMinutosParaHoras(Math.abs(extrasMin))}</span></td>`;
         html += '</tr>';
@@ -412,3 +416,105 @@ function exportarPDF() {
     
     console.log('📄 PDF exportado:', nomeArquivo);
 }
+
+// ========================================
+// REGISTRO RÁPIDO (MOBILE)
+// ========================================
+
+function abrirRegistroRapido() {
+    const modal = document.getElementById('registroRapidoModal');
+    modal.classList.add('active');
+    
+    // Atualizar hora e data atual
+    atualizarHorarioAtual();
+    
+    // Atualizar a cada segundo
+    if (window.intervalHorarioAtual) {
+        clearInterval(window.intervalHorarioAtual);
+    }
+    window.intervalHorarioAtual = setInterval(atualizarHorarioAtual, 1000);
+}
+
+function fecharRegistroRapido() {
+    const modal = document.getElementById('registroRapidoModal');
+    modal.classList.remove('active');
+    
+    if (window.intervalHorarioAtual) {
+        clearInterval(window.intervalHorarioAtual);
+    }
+}
+
+function atualizarHorarioAtual() {
+    const agora = new Date();
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
+    
+    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
+                   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    
+    const horaDisplay = document.getElementById('horaAtualDisplay');
+    const dataDisplay = document.getElementById('dataAtualDisplay');
+    
+    if (horaDisplay) {
+        horaDisplay.textContent = `${horas}:${minutos}`;
+    }
+    
+    if (dataDisplay) {
+        dataDisplay.textContent = `${diasSemana[agora.getDay()]}, ${agora.getDate()} de ${meses[agora.getMonth()]} de ${agora.getFullYear()}`;
+    }
+}
+
+function registrarHorarioRapido(tipo) {
+    const agora = new Date();
+    const dataHoje = agora.toISOString().split('T')[0];
+    const horaAgora = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+    
+    const registros = carregarDados();
+    
+    // Procurar registro do dia atual
+    let registroHoje = registros.find(r => r.data === dataHoje);
+    
+    if (!registroHoje) {
+        // Criar novo registro para hoje
+        registroHoje = {
+            data: dataHoje,
+            entrada: null,
+            almoco_saida: null,
+            almoco_volta: null,
+            saida: null
+        };
+        registros.push(registroHoje);
+    }
+    
+    // Atualizar APENAS horários de almoço (entrada/saída vêm da catraca)
+    switch(tipo) {
+        case 'almoco_saida':
+            registroHoje.almoco_saida = horaAgora;
+            toast.success(`🍽️ Saída para almoço registrada: ${horaAgora}`);
+            break;
+        case 'almoco_volta':
+            registroHoje.almoco_volta = horaAgora;
+            toast.success(`🍽️ Retorno do almoço registrado: ${horaAgora}`);
+            break;
+        default:
+            toast.error('❌ Tipo de registro inválido!');
+            return;
+    }
+    
+    // Salvar
+    salvarDados(registros);
+    
+    // Atualizar tabela
+    atualizarTabela();
+    
+    // Fechar modal após 1.5s
+    setTimeout(() => {
+        fecharRegistroRapido();
+    }, 1500);
+}
+
+// Tornar funções globais
+window.abrirRegistroRapido = abrirRegistroRapido;
+window.fecharRegistroRapido = fecharRegistroRapido;
+window.registrarHorarioRapido = registrarHorarioRapido;

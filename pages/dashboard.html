@@ -159,6 +159,14 @@
             </div>
             
             <div class="stat-card">
+                <div class="stat-icon">🍽️</div>
+                <div class="stat-info">
+                    <h3 id="tempoAlmoco">--</h3>
+                    <p>Tempo de Almoço</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
                 <div class="stat-icon">💼</div>
                 <div class="stat-info">
                     <h3 id="mediaDiaria">--</h3>
@@ -178,22 +186,67 @@
         <!-- Charts -->
         <div class="chart-grid">
             <div class="chart-container">
-                <h2>Horas Semanais</h2>
-                <div style="position: relative; height: 300px;">
+                <div class="chart-header">
+                    <h2>Horas Semanais</h2>
+                    <div class="chart-actions">
+                        <button class="btn-chart-menu" onclick="toggleChartMenu(event, 'menu1')">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <div class="chart-menu" id="menu1">
+                            <button onclick="abrirAnaliseBarras(); closeChartMenu('menu1')">
+                                <i class="ri-bar-chart-box-line"></i> Analisar Dados
+                            </button>
+                            <button onclick="exportarDados('barras'); closeChartMenu('menu1')">
+                                <i class="ri-download-line"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: relative; height: 260px;">
                     <canvas id="chartBarras"></canvas>
                 </div>
             </div>
             
             <div class="chart-container">
-                <h2>Distribuição Semanal</h2>
-                <div style="position: relative; height: 300px;">
+                <div class="chart-header">
+                    <h2>Distribuição Semanal</h2>
+                    <div class="chart-actions">
+                        <button class="btn-chart-menu" onclick="toggleChartMenu(event, 'menu2')">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <div class="chart-menu" id="menu2">
+                            <button onclick="abrirAnaliseDistribuicao(); closeChartMenu('menu2')">
+                                <i class="ri-bar-chart-box-line"></i> Analisar Dados
+                            </button>
+                            <button onclick="exportarDados('distribuicao'); closeChartMenu('menu2')">
+                                <i class="ri-download-line"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: relative; height: 220px;">
                     <canvas id="chartPizza"></canvas>
                 </div>
             </div>
             
             <div class="chart-container">
-                <h2>Evolução de Horas Extras</h2>
-                <div style="position: relative; height: 300px;">
+                <div class="chart-header">
+                    <h2>Evolução de Horas Extras</h2>
+                    <div class="chart-actions">
+                        <button class="btn-chart-menu" onclick="toggleChartMenu(event, 'menu3')">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <div class="chart-menu" id="menu3">
+                            <button onclick="abrirAnaliseExtras(); closeChartMenu('menu3')">
+                                <i class="ri-bar-chart-box-line"></i> Analisar Dados
+                            </button>
+                            <button onclick="exportarDados('extras'); closeChartMenu('menu3')">
+                                <i class="ri-download-line"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: relative; height: 260px;">
                     <canvas id="chartLinha"></canvas>
                 </div>
             </div>
@@ -218,6 +271,11 @@
                 </table>
             </div>
         </div>
+
+        <!-- Botão Flutuante de Registro de Almoço -->
+        <button class="btn-registro-rapido" onclick="abrirRegistroRapido()" title="Registrar Horário de Almoço">
+            <i class="ri-restaurant-line"></i>
+        </button>
 
         <footer class="footer">
             <div class="footer__content">
@@ -267,7 +325,68 @@
         </div>
     </div>
 
+    <!-- Modal de Registro de Almoço -->
+    <div class="modal-overlay" id="registroRapidoModal">
+        <div class="modal modal--registro-rapido">
+            <div class="modal__header" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                <div class="modal__icon">
+                    <i class="ri-restaurant-line"></i>
+                </div>
+                <h3 class="modal__title">Registro de Almoço</h3>
+                <button class="modal__close" onclick="fecharRegistroRapido()">×</button>
+            </div>
+            <div class="modal__content" style="padding: 1.5rem;">
+                <div id="registroRapidoConteudo">
+                    <p style="text-align: center; color: var(--text-color); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                        📝 <strong>Entrada e Saída</strong> são registradas automaticamente pela catraca.<br>
+                        Aqui você registra apenas o <strong>horário de almoço</strong>:
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; max-width: 400px; margin: 0 auto;">
+                        <button onclick="registrarHorarioRapido('almoco_saida')" class="btn-horario-rapido almoco" style="padding: 2rem 1rem;">
+                            <i class="ri-logout-circle-line"></i>
+                            <span style="font-size: 1.1rem;">Saída Almoço</span>
+                            <small>Fui almoçar</small>
+                        </button>
+                        <button onclick="registrarHorarioRapido('almoco_volta')" class="btn-horario-rapido almoco" style="padding: 2rem 1rem;">
+                            <i class="ri-login-circle-line"></i>
+                            <span style="font-size: 1.1rem;">Volta Almoço</span>
+                            <small>Voltei</small>
+                        </button>
+                    </div>
+                    <div id="horarioAtual" style="margin-top: 1.5rem; padding: 1.2rem; background: rgba(245, 158, 11, 0.1); border-radius: 12px; text-align: center; border: 2px solid rgba(245, 158, 11, 0.3);">
+                        <i class="ri-time-line" style="font-size: 2.2rem; color: #F59E0B;"></i>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--title-color); margin: 0.5rem 0;">
+                            <span id="horaAtualDisplay">--:--</span>
+                        </p>
+                        <p style="font-size: 0.9rem; color: var(--text-color); margin: 0;">
+                            <span id="dataAtualDisplay">-- de --- de ----</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Análise -->
+    <div class="modal-overlay" id="analysisModal">
+        <div class="modal modal--large">
+            <div class="modal__header">
+                <div class="modal__icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="ri-bar-chart-box-line"></i>
+                </div>
+                <h3 class="modal__title" id="analysisTitle">Análise Detalhada</h3>
+                <button class="modal__close" onclick="fecharAnalise()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal__content" id="analysisContent">
+                <!-- Conteúdo dinâmico será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <script src="../js/storage.js"></script>
     <script src="../js/http.js"></script>
     <script src="../js/error-handler.js"></script>
