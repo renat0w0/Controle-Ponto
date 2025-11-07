@@ -146,6 +146,11 @@
         <!-- Tabela -->
         <div id="registrosTabela"></div>
 
+        <!-- Botão Flutuante de Registro Rápido (Mobile) -->
+        <button class="btn-registro-rapido" onclick="abrirRegistroRapido()" title="Registro Rápido">
+            <i class="ri-time-line"></i>
+        </button>
+
         <!-- Exportar -->
         <div style="margin-top: 2rem; text-align: center; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <button onclick="exportarCSV()" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
@@ -246,6 +251,48 @@
             });
         });
     </script>
+
+    <!-- Modal de Registro Rápido -->
+    <div class="modal-overlay" id="registroRapidoModal">
+        <div class="modal modal--registro-rapido">
+            <div class="modal__header" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                <div class="modal__icon">
+                    <i class="ri-restaurant-line"></i>
+                </div>
+                <h3 class="modal__title">Registro de Almoço</h3>
+                <button class="modal__close" onclick="fecharRegistroRapido()">×</button>
+            </div>
+            <div class="modal__content" style="padding: 1.5rem;">
+                <div id="registroRapidoConteudo">
+                    <p style="text-align: center; color: var(--text-color); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                        📝 <strong>Entrada e Saída</strong> são registradas automaticamente pela catraca.<br>
+                        Aqui você registra apenas o <strong>horário de almoço</strong>:
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; max-width: 400px; margin: 0 auto;">
+                        <button onclick="registrarHorarioRapido('almoco_saida')" class="btn-horario-rapido almoco" style="padding: 2rem 1rem;">
+                            <i class="ri-logout-circle-line"></i>
+                            <span style="font-size: 1.1rem;">Saída Almoço</span>
+                            <small>Fui almoçar</small>
+                        </button>
+                        <button onclick="registrarHorarioRapido('almoco_volta')" class="btn-horario-rapido almoco" style="padding: 2rem 1rem;">
+                            <i class="ri-login-circle-line"></i>
+                            <span style="font-size: 1.1rem;">Volta Almoço</span>
+                            <small>Voltei</small>
+                        </button>
+                    </div>
+                    <div id="horarioAtual" style="margin-top: 1.5rem; padding: 1.2rem; background: rgba(245, 158, 11, 0.1); border-radius: 12px; text-align: center; border: 2px solid rgba(245, 158, 11, 0.3);">
+                        <i class="ri-time-line" style="font-size: 2.2rem; color: #F59E0B;"></i>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--title-color); margin: 0.5rem 0;">
+                            <span id="horaAtualDisplay">--:--</span>
+                        </p>
+                        <p style="font-size: 0.9rem; color: var(--text-color); margin: 0;">
+                            <span id="dataAtualDisplay">-- de --- de ----</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal -->
     <div class="modal-overlay" id="confirmModal">
