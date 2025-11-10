@@ -315,7 +315,16 @@
                 // Buscar e salvar dados do usuário
                 await buscarUsuarioLogado(email);
                 btnLogin.textContent = 'Redirecionando...';
-                window.location.href = './pages/dashboard.html';
+                
+                // Verificar se já configurou armazenamento
+                const storageType = Storage.get('storageType');
+                if (!storageType || Storage.get('storageSkipped')) {
+                    // Primeira vez ou pulou antes, ir para setup
+                    window.location.href = './pages/storage-setup.html';
+                } else {
+                    // Já configurado, ir direto para dashboard
+                    window.location.href = './pages/dashboard.html';
+                }
             } else {
                 erroDiv.textContent = resultado.erro;
                 erroDiv.style.display = 'block';

@@ -94,3 +94,8 @@ class Toast {
 const toast = new Toast();
 
 window.toast = toast;
+
+// Funções auxiliares globais para compatibilidade
+window.showToast = (message, type = 'info', duration = 3000) => {
+    return toast.show(message, type, duration);
+};
