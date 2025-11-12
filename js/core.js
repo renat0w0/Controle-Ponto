@@ -45,23 +45,42 @@ function ehFimDeSemana(dataStr) {
 function calcularHorasExtras(dataStr, entrada, saida, almocoEntrada = null, almocoSaida = null) {
     const data = new Date(dataStr + 'T00:00:00');
     const diaSemana = data.getDay();
-    
+
     // Fim de semana: tudo é hora extra
     if (diaSemana === 0 || diaSemana === 6) {
         return calcularTotalTrabalhado(entrada, saida, almocoEntrada, almocoSaida);
     }
-    
-    // Calcular total trabalhado (já descontando almoço)
-    const totalTrabalhado = calcularTotalTrabalhado(entrada, saida, almocoEntrada, almocoSaida);
-    
-    // Jornada normal: 8h48 (528 minutos)
-    const jornadaNormal = 528;
-    
-    // Se trabalhou mais que a jornada normal, a diferença é hora extra
-    if (totalTrabalhado > jornadaNormal) {
-        return totalTrabalhado - jornadaNormal;
+
+    // Novo comportamento: usar corte fixo às 17:30 como início de hora extra nos dias úteis.
+    // Se a saída ocorrer após 17:30, considera-se como hora extra o tempo após 17:30.
+    // Mantemos o desconto de almoço no cálculo do total, mas o início da HE é fixo.
+    const minutosSaida = converterParaMinutos(saida);
+    const corteHE = 17 * 60 + 30; // 17:30 em minutos
+
+    if (!saida) return 0;
+
+    if (minutosSaida > corteHE) {
+        // Se houver almoço registrado, já foi descontado no totalTrabalhado,
+        // mas o HE é calculado a partir do corte até a saída.
+        // Para evitar contar minutos de almoço dentro da HE, calculamos a
+        // diferença entre saída e corte e então subtraímos qualquer intervalo
+        // de almoço que esteja totalmente dentro desse período.
+        let heMinutos = minutosSaida - corteHE;
+
+        if (almocoEntrada && almocoSaida) {
+            const almocoIni = converterParaMinutos(almocoEntrada);
+            const almocoFim = converterParaMinutos(almocoSaida);
+            // Se o intervalo de almoço estiver dentro do período (corteHE, minutosSaida), subtrai
+            const overlapStart = Math.max(almocoIni, corteHE);
+            const overlapEnd = Math.min(almocoFim, minutosSaida);
+            if (overlapEnd > overlapStart) {
+                heMinutos -= (overlapEnd - overlapStart);
+            }
+        }
+
+        return Math.max(0, heMinutos);
     }
-    
+
     return 0;
 }
 

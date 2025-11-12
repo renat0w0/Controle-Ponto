@@ -1033,15 +1033,7 @@ body:not(.dark-theme) .modal__content {
   box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
-.btn-horario-rapido.almoco {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
-}
-
-.btn-horario-rapido.almoco:hover {
-  border-color: rgba(245, 158, 11, 0.7);
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
-}
+/* estilos de horário de almoço removidos */
 
 .btn-horario-rapido i {
   font-size: 2rem;
@@ -2575,6 +2567,8 @@ body.dark-theme .skeleton {
     display: flex;
     align-items: center;
 }
+
+/* removido: elementos relacionados a almoço */
 
 .status-badge {
     display: inline-flex;

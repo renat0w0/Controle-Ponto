@@ -80,21 +80,25 @@ function filtrarDadosPorPeriodo() {
 function calcularMetricas(dados) {
     let totalMinutosTrabalhados = 0;
     let totalMinutosExtras = 0;
-    let totalMinutosAlmoco = 0;
     let diasTrabalhados = 0;
     let diasComExtra = 0;
+    let totalMinutosAlmoco = 0; // agora definido para evitar ReferenceError
     
     dados.forEach(reg => {
         if (reg.entrada && reg.saida) {
-            const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-            const almoco = calcularTempoAlmoco(reg.almoco_saida, reg.almoco_volta);
-            
+            const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
+            // calcular tempo de almoço apenas se a função existir e valores estiverem presentes
+            let almoco = 0;
+            if (typeof calcularTempoAlmoco === 'function') {
+                almoco = calcularTempoAlmoco(reg.almoco_saida, reg.almoco_volta) || 0;
+            }
+
             totalMinutosTrabalhados += total;
             totalMinutosExtras += extras;
             totalMinutosAlmoco += almoco;
             diasTrabalhados++;
-            
+
             if (extras > 0) {
                 diasComExtra++;
             }
@@ -128,7 +132,7 @@ function atualizarKPIs(metricas) {
     
     if (totalTrabalhado) totalTrabalhado.textContent = formatarMinutosParaHoras(metricas.totalMinutosTrabalhados);
     if (horasExtras) horasExtras.textContent = formatarMinutosParaHoras(metricas.totalMinutosExtras);
-    if (tempoAlmoco) tempoAlmoco.textContent = formatarMinutosParaHoras(metricas.totalMinutosAlmoco);
+    // tempoAlmoco KPI removed
     if (mediaDiaria) mediaDiaria.textContent = formatarMinutosParaHoras(metricas.mediaDiaria);
     if (diasTrabalhados) diasTrabalhados.textContent = metricas.diasTrabalhados;
 }
@@ -1260,104 +1264,4 @@ function copiarLink() {
     });
 }
 
-// ========================================
-// REGISTRO RÁPIDO DE ALMOÇO (Dashboard)
-// ========================================
-
-function abrirRegistroRapido() {
-    const modal = document.getElementById('registroRapidoModal');
-    modal.classList.add('active');
-    
-    // Atualizar hora e data atual
-    atualizarHorarioAtual();
-    
-    // Atualizar a cada segundo
-    if (window.intervalHorarioAtual) {
-        clearInterval(window.intervalHorarioAtual);
-    }
-    window.intervalHorarioAtual = setInterval(atualizarHorarioAtual, 1000);
-}
-
-function fecharRegistroRapido() {
-    const modal = document.getElementById('registroRapidoModal');
-    modal.classList.remove('active');
-    
-    if (window.intervalHorarioAtual) {
-        clearInterval(window.intervalHorarioAtual);
-    }
-}
-
-function atualizarHorarioAtual() {
-    const agora = new Date();
-    const horas = String(agora.getHours()).padStart(2, '0');
-    const minutos = String(agora.getMinutes()).padStart(2, '0');
-    
-    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
-                   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-    const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    
-    const horaDisplay = document.getElementById('horaAtualDisplay');
-    const dataDisplay = document.getElementById('dataAtualDisplay');
-    
-    if (horaDisplay) {
-        horaDisplay.textContent = `${horas}:${minutos}`;
-    }
-    
-    if (dataDisplay) {
-        dataDisplay.textContent = `${diasSemana[agora.getDay()]}, ${agora.getDate()} de ${meses[agora.getMonth()]} de ${agora.getFullYear()}`;
-    }
-}
-
-function registrarHorarioRapido(tipo) {
-    const agora = new Date();
-    const dataHoje = agora.toISOString().split('T')[0];
-    const horaAgora = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
-    
-    const registros = carregarDados();
-    
-    // Procurar registro do dia atual
-    let registroHoje = registros.find(r => r.data === dataHoje);
-    
-    if (!registroHoje) {
-        // Criar novo registro para hoje (só com almoço, entrada/saída vêm da catraca)
-        registroHoje = {
-            data: dataHoje,
-            entrada: null,
-            almoco_saida: null,
-            almoco_volta: null,
-            saida: null
-        };
-        registros.push(registroHoje);
-    }
-    
-    // Atualizar APENAS horários de almoço
-    switch(tipo) {
-        case 'almoco_saida':
-            registroHoje.almoco_saida = horaAgora;
-            toast.success(`🍽️ Saída para almoço registrada: ${horaAgora}`);
-            break;
-        case 'almoco_volta':
-            registroHoje.almoco_volta = horaAgora;
-            toast.success(`🍽️ Retorno do almoço registrado: ${horaAgora}`);
-            break;
-        default:
-            toast.error('❌ Tipo de registro inválido!');
-            return;
-    }
-    
-    // Salvar
-    salvarDados(registros);
-    
-    // Atualizar dashboard
-    atualizarDashboard();
-    
-    // Fechar modal após 1.5s
-    setTimeout(() => {
-        fecharRegistroRapido();
-    }, 1500);
-}
-
-// Tornar funções globais
-window.abrirRegistroRapido = abrirRegistroRapido;
-window.fecharRegistroRapido = fecharRegistroRapido;
-window.registrarHorarioRapido = registrarHorarioRapido;
+// Registro rápido de almoço removido (UI e handlers eliminados)

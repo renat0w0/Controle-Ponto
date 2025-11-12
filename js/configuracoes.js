@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /*=============== ARMAZENAMENTO ===============*/
 
 function atualizarStatusArmazenamento() {
+    const config = Storage.get('configuracoes') || {};
     const storageType = Storage.get('storageType') || 'local';
     const storageConnected = Storage.get('storageConnected') || false;
     const statusEl = document.getElementById('storageStatus');
@@ -18,7 +19,7 @@ function atualizarStatusArmazenamento() {
     const connectionIcon = document.getElementById('connection-icon');
     const connectionProvider = document.getElementById('connection-provider');
     const connectionAccount = document.getElementById('connection-account');
-    
+
     // Atualizar badge de status
     let statusHTML = '';
     if (storageType === 'google' && storageConnected) {
@@ -32,11 +33,11 @@ function atualizarStatusArmazenamento() {
         actionsEl.style.display = 'none';
     }
     statusEl.innerHTML = statusHTML;
-    
+
     // Atualizar card de informações de conexão
     if (connectionStatusDiv && storageConnected && storageType !== 'local') {
         connectionStatusDiv.style.display = 'block';
-        
+
         if (storageType === 'google') {
             connectionIcon.innerHTML = `
                 <svg viewBox="0 0 48 48" width="32" height="32">
@@ -60,7 +61,7 @@ function atualizarStatusArmazenamento() {
     } else if (connectionStatusDiv) {
         connectionStatusDiv.style.display = 'none';
     }
-    
+
     // Atualizar botões
     atualizarBotoesArmazenamento(storageType, storageConnected);
 }
@@ -101,15 +102,58 @@ function atualizarBotoesArmazenamento(type, connected) {
 }
 
 function conectarGoogleDrive() {
-    showToast('🔄 Redirecionando para autenticação do Google...', 'info');
-    
-    // TODO: Implementar OAuth do Google
-    setTimeout(() => {
-        showToast('✅ Google Drive conectado com sucesso!', 'success');
+    if (!window.gapiReady) {
+        showToast('Aguarde, inicializando Google API...', 'warning');
+        return;
+    }
+    showToast('🔄 Autenticando com Google...', 'info');
+    const authInstance = gapi.auth2.getAuthInstance();
+    authInstance.signIn().then(user => {
+        const profile = user.getBasicProfile();
+        const email = profile.getEmail();
+        const nome = profile.getName();
+        const foto = profile.getImageUrl();
+        // Salva dados do usuário Google
+        const config = Storage.get('configuracoes') || {};
+        config.googleAccount = email;
+        config.googleNome = nome;
+        config.googleFoto = foto;
+        Storage.set('configuracoes', config);
         Storage.set('storageType', 'google');
         Storage.set('storageConnected', true);
         atualizarStatusArmazenamento();
-    }, 1500);
+        showToast('✅ Google Drive conectado!', 'success');
+    }).catch(err => {
+        showToast('Erro ao autenticar Google: ' + err.error, 'error');
+    });
+}
+
+// Exemplo de uso das APIs após login:
+function listarArquivosDrive() {
+    gapi.client.drive.files.list({
+        pageSize: 10,
+        fields: 'files(id, name)'
+    }).then(response => {
+        console.log('Arquivos:', response.result.files);
+    });
+}
+
+function buscarDadosSheets(sheetId, range) {
+    gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: range
+    }).then(response => {
+        console.log('Dados Sheets:', response.result.values);
+    });
+}
+
+function buscarPerfilGoogle() {
+    gapi.client.people.people.get({
+        resourceName: 'people/me',
+        personFields: 'names,emailAddresses,photos'
+    }).then(response => {
+        console.log('Perfil:', response.result);
+    });
 }
 
 function conectarOneDrive() {
@@ -160,11 +204,6 @@ function carregarConfiguracoes() {
     // Horários
     const config = Storage.get('configuracoes') || {};
     
-    document.getElementById('horarioEntrada').value = config.horarioEntrada || '08:00';
-    document.getElementById('horarioSaida').value = config.horarioSaida || '17:30';
-    document.getElementById('duracaoAlmoco').value = config.duracaoAlmoco || 60;
-    document.getElementById('cargaHorariaDiaria').value = config.cargaHorariaDiaria || 8.8;
-    
     // Hora Extra
     document.getElementById('percentualHE50').value = config.percentualHE50 || 50;
     document.getElementById('percentualHE100').value = config.percentualHE100 || 100;
@@ -179,29 +218,7 @@ function carregarConfiguracoes() {
     document.getElementById('formatoHora').value = config.formatoHora || '24h';
 }
 
-function salvarConfiguracoesHorario() {
-    const config = Storage.get('configuracoes') || {};
-    
-    config.horarioEntrada = document.getElementById('horarioEntrada').value;
-    config.horarioSaida = document.getElementById('horarioSaida').value;
-    config.duracaoAlmoco = parseInt(document.getElementById('duracaoAlmoco').value);
-    config.cargaHorariaDiaria = parseFloat(document.getElementById('cargaHorariaDiaria').value);
-    
-    Storage.set('configuracoes', config);
-    showToast('✅ Configurações de horário salvas!', 'success');
-}
-
-function resetarConfiguracoesHorario() {
-    if (confirm('Deseja restaurar as configurações de horário para os valores padrão?')) {
-        document.getElementById('horarioEntrada').value = '08:00';
-        document.getElementById('horarioSaida').value = '17:30';
-        document.getElementById('duracaoAlmoco').value = 60;
-        document.getElementById('cargaHorariaDiaria').value = 8.8;
-        
-        salvarConfiguracoesHorario();
-        showToast('✅ Configurações restauradas!', 'success');
-    }
-}
+// Funções de horário removidas - o sistema usa corte fixo para HE (17:30)
 
 /*=============== CONFIGURAÇÕES DE HORA EXTRA ===============*/
 

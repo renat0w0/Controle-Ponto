@@ -79,9 +79,8 @@
                     <i class="ri-settings-3-fill"></i>
                     <span>Configurações</span>
                 </a>
-
-                <button class="sidebar__link" onclick="sair()">
-                    <i class="ri-logout-box-r-fill"></i>
+                <button class="sidebar__link sidebar__logout" onclick="sair()">
+                    <i class="ri-logout-box-r-line"></i>
                     <span>Sair</span>
                 </button>
             </div>
@@ -191,67 +190,7 @@
                 </div>
             </section>
 
-            <!-- Seção: Configurações de Horário -->
-            <section class="config-section">
-                <div class="config-header">
-                    <div>
-                        <h2 class="config-title">
-                            <i class="ri-time-fill"></i>
-                            Horários de Trabalho
-                        </h2>
-                        <p class="config-description">Defina os horários padrão da jornada</p>
-                    </div>
-                </div>
-
-                <div class="config-content">
-                    <div class="config-grid">
-                        <div class="config-item">
-                            <label for="horarioEntrada">
-                                <i class="ri-login-circle-fill"></i>
-                                Horário de Entrada
-                            </label>
-                            <input type="time" id="horarioEntrada" class="config-input" value="08:00">
-                            <small>Horário padrão de início do expediente</small>
-                        </div>
-
-                        <div class="config-item">
-                            <label for="horarioSaida">
-                                <i class="ri-logout-circle-fill"></i>
-                                Horário de Saída
-                            </label>
-                            <input type="time" id="horarioSaida" class="config-input" value="17:30">
-                            <small>Horário padrão de fim do expediente</small>
-                        </div>
-
-                        <div class="config-item">
-                            <label for="duracaoAlmoco">
-                                <i class="ri-restaurant-fill"></i>
-                                Duração do Almoço (minutos)
-                            </label>
-                            <input type="number" id="duracaoAlmoco" class="config-input" value="60" min="0" max="120" step="15">
-                            <small>Tempo padrão de intervalo para almoço</small>
-                        </div>
-
-                        <div class="config-item">
-                            <label for="cargaHorariaDiaria">
-                                <i class="ri-hourglass-fill"></i>
-                                Carga Horária Diária (horas)
-                            </label>
-                            <input type="number" id="cargaHorariaDiaria" class="config-input" value="8.8" min="1" max="12" step="0.1">
-                            <small>Horas de trabalho por dia (8.8h = 8h48min)</small>
-                        </div>
-                    </div>
-
-                    <div class="config-actions">
-                        <button class="btn btn-primary" onclick="salvarConfiguracoesHorario()">
-                            <i class="ri-save-fill"></i> Salvar Horários
-                        </button>
-                        <button class="btn btn-outline" onclick="resetarConfiguracoesHorario()">
-                            <i class="ri-restart-fill"></i> Restaurar Padrão
-                        </button>
-                    </div>
-                </div>
-            </section>
+            <!-- Seção: Horários removida — o cálculo de HE usa corte fixo às 17:30 -->
 
             <!-- Seção: Cálculo de Horas Extras -->
             <section class="config-section">
@@ -261,7 +200,7 @@
                             <i class="ri-money-dollar-circle-fill"></i>
                             Cálculo de Horas Extras
                         </h2>
-                        <p class="config-description">Configure os percentuais e regras de hora extra</p>
+                        <p class="config-description">Hora extra será calculada automaticamente para o tempo trabalhado após <strong>17:30</strong> em dias úteis. As regras de porcentagem permanecem conforme preferências (50% / 100%).</p>
                     </div>
                 </div>
 
@@ -449,5 +388,27 @@
     <script src="../js/sidebar.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/configuracoes.js"></script>
+
+    <!-- Google API Scripts -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+      // Inicialização do Google API Client
+      function initGoogleAPI() {
+        gapi.load('client:auth2', function() {
+          gapi.client.init({
+            clientId: '573536589831-kbminsrogvph904s855viof2r3fhkdsa.apps.googleusercontent.com',
+            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/contacts.readonly',
+            discoveryDocs: [
+              'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+              'https://www.googleapis.com/discovery/v1/apis/people/v1/rest',
+              'https://sheets.googleapis.com/$discovery/rest?version=v4'
+            ]
+          }).then(function () {
+            window.gapiReady = true;
+          });
+        });
+      }
+      window.addEventListener('DOMContentLoaded', initGoogleAPI);
+    </script>
 </body>
 </html>
