@@ -80,41 +80,33 @@ function filtrarDadosPorPeriodo() {
 function calcularMetricas(dados) {
     let totalMinutosTrabalhados = 0;
     let totalMinutosExtras = 0;
-    let totalMinutosAlmoco = 0;
     let diasTrabalhados = 0;
     let diasComExtra = 0;
-    
+
     dados.forEach(reg => {
         if (reg.entrada && reg.saida) {
-            const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-            const almoco = calcularTempoAlmoco(reg.almoco_saida, reg.almoco_volta);
-            
+            const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
             totalMinutosTrabalhados += total;
             totalMinutosExtras += extras;
-            totalMinutosAlmoco += almoco;
             diasTrabalhados++;
-            
             if (extras > 0) {
                 diasComExtra++;
             }
         }
     });
-    
+
     const mediaDiaria = diasTrabalhados > 0 ? Math.floor(totalMinutosTrabalhados / diasTrabalhados) : 0;
-    const mediaAlmoco = diasTrabalhados > 0 ? Math.floor(totalMinutosAlmoco / diasTrabalhados) : 0;
     const percentualExtras = totalMinutosTrabalhados > 0 
         ? ((totalMinutosExtras / totalMinutosTrabalhados) * 100).toFixed(1)
         : 0;
-    
+
     return {
         totalMinutosTrabalhados,
         totalMinutosExtras,
-        totalMinutosAlmoco,
         diasTrabalhados,
         diasComExtra,
         mediaDiaria,
-        mediaAlmoco,
         percentualExtras
     };
 }
@@ -122,13 +114,11 @@ function calcularMetricas(dados) {
 function atualizarKPIs(metricas) {
     const totalTrabalhado = document.getElementById('totalTrabalhado');
     const horasExtras = document.getElementById('horasExtras');
-    const tempoAlmoco = document.getElementById('tempoAlmoco');
     const mediaDiaria = document.getElementById('mediaDiaria');
     const diasTrabalhados = document.getElementById('diasTrabalhados');
     
     if (totalTrabalhado) totalTrabalhado.textContent = formatarMinutosParaHoras(metricas.totalMinutosTrabalhados);
     if (horasExtras) horasExtras.textContent = formatarMinutosParaHoras(metricas.totalMinutosExtras);
-    if (tempoAlmoco) tempoAlmoco.textContent = formatarMinutosParaHoras(metricas.totalMinutosAlmoco);
     if (mediaDiaria) mediaDiaria.textContent = formatarMinutosParaHoras(metricas.mediaDiaria);
     if (diasTrabalhados) diasTrabalhados.textContent = metricas.diasTrabalhados;
 }
@@ -160,8 +150,8 @@ function criarGraficoBarras(dados) {
             semanas.set(chave, { normal: 0, extras: 0 });
         }
         
-        const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
         const normal = total - extras;
         
         const atual = semanas.get(chave);
@@ -373,7 +363,7 @@ function criarGraficoLinha(dados) {
             semanas.set(chave, 0);
         }
         
-        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
         const valorAtual = semanas.get(chave);
         semanas.set(chave, valorAtual + (extras / 60));
     });
@@ -524,8 +514,8 @@ function criarTabelaSemanal(dados) {
         
         const s = semanas.get(chave);
         s.dias++;
-        s.total += calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-        s.extras += calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        s.total += calcularTotalTrabalhado(reg.entrada, reg.saida);
+        s.extras += calcularHorasExtras(reg.data, reg.entrada, reg.saida);
     });
     
     if (semanas.size === 0) {
@@ -723,7 +713,7 @@ function atualizarCardHoje() {
         }
         
         // Calcular horas trabalhadas
-        const totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
+        const totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida);
         const horas = Math.floor(totalMin / 60);
         const minutos = totalMin % 60;
         
@@ -732,7 +722,7 @@ function atualizarCardHoje() {
         }
         
         // Calcular hora extra
-        const extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
+        const extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida);
         if (document.getElementById('hojeExtra')) {
             if (extrasMin > 0) {
                 const horasExtra = Math.floor(extrasMin / 60);
@@ -780,7 +770,7 @@ function criarGraficoPizza(dados) {
         dados.forEach(reg => {
             const data = new Date(reg.data + 'T00:00:00');
             const diaSemana = data.getDay();
-            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
             horasPorDia[diaSemana] += totalMin / 60;
         });
         
@@ -983,8 +973,8 @@ function abrirAnaliseBarras() {
             semanas.set(chave, { normal: 0, extras: 0 });
         }
         
-        const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
         const normal = total - extras;
         
         const atual = semanas.get(chave);
@@ -1031,7 +1021,7 @@ function abrirAnaliseDistribuicao() {
     dados.forEach(reg => {
         const data = new Date(reg.data + 'T00:00:00');
         const diaSemana = data.getDay();
-        const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
         horasPorDia[diaSemana] += totalMin / 60;
         diasContados[diaSemana]++;
     });
@@ -1076,7 +1066,7 @@ function abrirAnaliseExtras() {
             semanas.set(chave, 0);
         }
         
-        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+        const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
         semanas.set(chave, semanas.get(chave) + (extras / 60));
     });
     
@@ -1147,8 +1137,8 @@ function exportarDados(tipo) {
                 semanas.set(chave, { normal: 0, extras: 0 });
             }
             
-            const total = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
-            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const total = calcularTotalTrabalhado(reg.entrada, reg.saida);
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
             const normal = total - extras;
             
             const atual = semanas.get(chave);
@@ -1172,7 +1162,7 @@ function exportarDados(tipo) {
         dados.forEach(reg => {
             const data = new Date(reg.data + 'T00:00:00');
             const diaSemana = data.getDay();
-            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const totalMin = calcularTotalTrabalhado(reg.entrada, reg.saida);
             horasPorDia[diaSemana] += totalMin / 60;
         });
         
@@ -1196,7 +1186,7 @@ function exportarDados(tipo) {
                 semanas.set(chave, 0);
             }
             
-            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida, reg.almoco_saida, reg.almoco_volta);
+            const extras = calcularHorasExtras(reg.data, reg.entrada, reg.saida);
             semanas.set(chave, semanas.get(chave) + (extras / 60));
         });
         
@@ -1271,8 +1261,7 @@ function atualizarHorarioAtual() {
     const horas = String(agora.getHours()).padStart(2, '0');
     const minutos = String(agora.getMinutes()).padStart(2, '0');
     
-    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
-                   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
     const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     
     const horaDisplay = document.getElementById('horaAtualDisplay');
