@@ -98,38 +98,12 @@
                 <p class="page-subtitle">Gerencie horários, armazenamento e preferências</p>
             </div>
 
-            <!-- Seção: Armazenamento na Nuvem -->
+fa            <!-- Login/Armazenamento -->
             <section class="config-section">
                 <div class="config-header">
-                    <div>
-                        <h2 class="config-title">
-                            <i class="ri-cloud-fill"></i>
-                            Armazenamento na Nuvem
-                        </h2>
-                        <p class="config-description">Conecte e gerencie sua conta de armazenamento</p>
-                    </div>
-                    <div class="storage-status" id="storageStatus">
-                        <span class="status-badge status-local">
-                            <i class="ri-hard-drive-fill"></i> Local
-                        </span>
-                    </div>
+                    <h2 class="config-title"><i class="ri-cloud-fill"></i> Armazenamento & Login</h2>
+                    <p class="config-description">Conecte e gerencie sua conta de armazenamento</p>
                 </div>
-
-                <!-- Status de Conexão Detalhado -->
-                <div id="storage-connection-status" class="storage-connection-status" style="margin-bottom: 1.5rem; display: none;">
-                    <div class="connection-info-card">
-                        <div class="connection-icon" id="connection-icon"></div>
-                        <div class="connection-details">
-                            <div class="connection-provider" id="connection-provider"></div>
-                            <div class="connection-account" id="connection-account"></div>
-                        </div>
-                        <div class="connection-badge">
-                            <i class="ri-checkbox-circle-fill" style="color: var(--success-color);"></i>
-                            Conectado
-                        </div>
-                    </div>
-                </div>
-
                 <div class="config-content">
                     <div class="storage-options">
                         <!-- Google Drive -->
@@ -143,11 +117,12 @@
                                 </svg>
                             </div>
                             <div class="storage-info">
-                                <h3>Google Drive</h3>
+                                <h3>Google Drive <span style="color:#f59e0b;font-size:0.9em">(em breve)</span></h3>
                             </div>
-                            <button class="btn btn-primary" onclick="conectarGoogleDrive()" id="btnGoogleDrive">
+                            <button class="btn btn-primary" disabled style="opacity:0.6;cursor:not-allowed;">
                                 <i class="ri-links-fill"></i> Conectar
                             </button>
+                            <small style="color:#f59e0b;display:block;margin-top:0.5em;">Login Google ainda não está finalizado.</small>
                         </div>
 
                         <!-- OneDrive -->
@@ -158,11 +133,12 @@
                                 </svg>
                             </div>
                             <div class="storage-info">
-                                <h3>OneDrive</h3>
+                                <h3>OneDrive <span style="color:#f59e0b;font-size:0.9em">(em breve)</span></h3>
                             </div>
-                            <button class="btn btn-primary" onclick="conectarOneDrive()" id="btnOneDrive">
+                            <button class="btn btn-primary" disabled style="opacity:0.6;cursor:not-allowed;">
                                 <i class="ri-links-fill"></i> Conectar
                             </button>
+                            <small style="color:#f59e0b;display:block;margin-top:0.5em;">Login OneDrive ainda não está disponível.</small>
                         </div>
 
                         <!-- Local -->
@@ -178,170 +154,15 @@
                             </button>
                         </div>
                     </div>
-
-                    <div class="storage-actions" id="storageActions" style="display: none;">
-                        <button class="btn btn-danger" onclick="desconectarArmazenamento()">
-                            <i class="ri-link-unlink"></i> Desconectar
-                        </button>
-                        <button class="btn btn-outline" onclick="sincronizarAgora()">
-                            <i class="ri-refresh-line"></i> Sincronizar Agora
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Seção: Horários removida — o cálculo de HE usa corte fixo às 17:30 -->
-
-            <!-- Seção: Cálculo de Horas Extras -->
-            <section class="config-section">
-                <div class="config-header">
-                    <div>
-                        <h2 class="config-title">
-                            <i class="ri-money-dollar-circle-fill"></i>
-                            Cálculo de Horas Extras
-                        </h2>
-                        <p class="config-description">Hora extra será calculada automaticamente para o tempo trabalhado após <strong>17:30</strong> em dias úteis. As regras de porcentagem permanecem conforme preferências (50% / 100%).</p>
-                    </div>
-                </div>
-
-                <div class="config-content">
-                    <div class="config-grid">
-                        <div class="config-item">
-                            <label for="percentualHE50">
-                                <i class="ri-percent-fill"></i>
-                                Hora Extra 50%
-                            </label>
-                            <input type="number" id="percentualHE50" class="config-input" value="50" min="0" max="200" step="10">
-                            <small>Dias úteis (segunda a sexta)</small>
-                        </div>
-
-                        <div class="config-item">
-                            <label for="percentualHE100">
-                                <i class="ri-percent-fill"></i>
-                                Hora Extra 100%
-                            </label>
-                            <input type="number" id="percentualHE100" class="config-input" value="100" min="0" max="200" step="10">
-                            <small>Finais de semana e feriados</small>
-                        </div>
-
-                        <div class="config-item">
-                            <label for="limiteHEDiaria">
-                                <i class="ri-alarm-warning-fill"></i>
-                                Limite de HE Diária (horas)
-                            </label>
-                            <input type="number" id="limiteHEDiaria" class="config-input" value="2" min="0" max="8" step="0.5">
-                            <small>Máximo de horas extras por dia (0 = sem limite)</small>
-                        </div>
-
-                        <div class="config-item">
-                            <label for="limiteHEMensal">
-                                <i class="ri-calendar-check-fill"></i>
-                                Limite de HE Mensal (horas)
-                            </label>
-                            <input type="number" id="limiteHEMensal" class="config-input" value="40" min="0" max="200" step="5">
-                            <small>Máximo de horas extras por mês (0 = sem limite)</small>
-                        </div>
-                    </div>
-
-                    <div class="config-toggle">
-                        <label class="toggle-container">
-                            <input type="checkbox" id="contarHEFinalSemana" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="toggle-info">
-                            <strong>Contar trabalho em finais de semana como 100% extra</strong>
-                            <small>Se desativado, usa o mesmo percentual dos dias úteis</small>
-                        </div>
-                    </div>
-
-                    <div class="config-actions">
-                        <button class="btn btn-primary" onclick="salvarConfiguracoesHE()">
-                            <i class="ri-save-fill"></i> Salvar Configurações
-                        </button>
-                        <button class="btn btn-outline" onclick="resetarConfiguracoesHE()">
-                            <i class="ri-restart-fill"></i> Restaurar Padrão
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Seção: Preferências Gerais -->
-            <section class="config-section">
-                <div class="config-header">
-                    <div>
-                        <h2 class="config-title">
-                            <i class="ri-settings-4-fill"></i>
-                            Preferências Gerais
-                        </h2>
-                        <p class="config-description">Personalize a experiência do sistema</p>
-                    </div>
-                </div>
-
-                <div class="config-content">
-                    <div class="config-toggle">
-                        <label class="toggle-container">
-                            <input type="checkbox" id="notificacoes" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="toggle-info">
-                            <strong>Notificações do Sistema</strong>
-                            <small>Receba alertas sobre registros e lembretes</small>
-                        </div>
-                    </div>
-
-                    <div class="config-toggle">
-                        <label class="toggle-container">
-                            <input type="checkbox" id="registroAutomatico">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="toggle-info">
-                            <strong>Sugestão de Registro Automático</strong>
-                            <small>Sistema sugere horários baseado na rotina</small>
-                        </div>
-                    </div>
-
-                    <div class="config-toggle">
-                        <label class="toggle-container">
-                            <input type="checkbox" id="modoCompacto">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="toggle-info">
-                            <strong>Modo Compacto</strong>
-                            <small>Interface mais condensada com menos espaçamento</small>
-                        </div>
-                    </div>
-
-                    <div class="config-item" style="margin-top: 1.5rem;">
-                        <label for="formatoHora">
-                            <i class="ri-time-fill"></i>
-                            Formato de Hora
-                        </label>
-                        <select id="formatoHora" class="config-input">
-                            <option value="24h">24 horas (14:30)</option>
-                            <option value="12h">12 horas (2:30 PM)</option>
-                        </select>
-                    </div>
-
-                    <div class="config-actions">
-                        <button class="btn btn-primary" onclick="salvarPreferencias()">
-                            <i class="ri-save-fill"></i> Salvar Preferências
-                        </button>
-                    </div>
                 </div>
             </section>
 
             <!-- Seção: Sobre o Sistema -->
             <section class="config-section">
                 <div class="config-header">
-                    <div>
-                        <h2 class="config-title">
-                            <i class="ri-information-fill"></i>
-                            Sobre o Sistema
-                        </h2>
-                        <p class="config-description">Informações e ações do sistema</p>
-                    </div>
+                    <h2 class="config-title"><i class="ri-information-fill"></i> Sobre o Sistema</h2>
+                    <p class="config-description">Informações e ações do sistema</p>
                 </div>
-
                 <div class="config-content">
                     <div class="about-info">
                         <div class="about-item">

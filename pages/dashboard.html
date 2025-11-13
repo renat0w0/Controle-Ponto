@@ -176,29 +176,34 @@
                     <p>Dias Trabalhados</p>
                 </div>
             </div>
+
+            <div class="stat-card kpi-meta">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-info">
+                    <h3 id="kpiMeta">--%</h3>
+                    <p>Dias com meta batida</p>
+                </div>
+            </div>
         </div>
 
         <!-- Charts -->
         <div class="chart-grid">
-            <div class="chart-container">
+            <div class="chart-container" style="overflow-x:auto;">
                 <div class="chart-header">
-                    <h2>Horas Semanais</h2>
+                    <h2>Média Diária (últimos 30 dias)</h2>
                     <div class="chart-actions">
-                        <button class="btn-chart-menu" onclick="toggleChartMenu(event, 'menu1')">
+                        <button class="btn-chart-menu" onclick="toggleChartMenu(event, 'menuMedia')">
                             <i class="ri-more-2-fill"></i>
                         </button>
-                        <div class="chart-menu" id="menu1">
-                            <button onclick="abrirAnaliseBarras(); closeChartMenu('menu1')">
-                                <i class="ri-bar-chart-box-line"></i> Analisar Dados
-                            </button>
-                            <button onclick="exportarDados('barras'); closeChartMenu('menu1')">
+                        <div class="chart-menu" id="menuMedia">
+                            <button onclick="exportarDados('media'); closeChartMenu('menuMedia')">
                                 <i class="ri-download-line"></i> Exportar CSV
                             </button>
                         </div>
                     </div>
                 </div>
-                <div style="position: relative; height: 260px;">
-                    <canvas id="chartBarras"></canvas>
+                <div style="position: relative; height: 260px; min-width:600px;">
+                    <canvas id="chartMedia"></canvas>
                 </div>
             </div>
             

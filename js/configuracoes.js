@@ -102,79 +102,18 @@ function atualizarBotoesArmazenamento(type, connected) {
 }
 
 function conectarGoogleDrive() {
-    if (!window.gapiReady) {
-        showToast('Aguarde, inicializando Google API...', 'warning');
-        return;
-    }
-    showToast('🔄 Autenticando com Google...', 'info');
-    const authInstance = gapi.auth2.getAuthInstance();
-    authInstance.signIn().then(user => {
-        const profile = user.getBasicProfile();
-        const email = profile.getEmail();
-        const nome = profile.getName();
-        const foto = profile.getImageUrl();
-        // Salva dados do usuário Google
-        const config = Storage.get('configuracoes') || {};
-        config.googleAccount = email;
-        config.googleNome = nome;
-        config.googleFoto = foto;
-        Storage.set('configuracoes', config);
-        Storage.set('storageType', 'google');
-        Storage.set('storageConnected', true);
-        atualizarStatusArmazenamento();
-        showToast('✅ Google Drive conectado!', 'success');
-    }).catch(err => {
-        showToast('Erro ao autenticar Google: ' + err.error, 'error');
-    });
-}
-
-// Exemplo de uso das APIs após login:
-function listarArquivosDrive() {
-    gapi.client.drive.files.list({
-        pageSize: 10,
-        fields: 'files(id, name)'
-    }).then(response => {
-        console.log('Arquivos:', response.result.files);
-    });
-}
-
-function buscarDadosSheets(sheetId, range) {
-    gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: sheetId,
-        range: range
-    }).then(response => {
-        console.log('Dados Sheets:', response.result.values);
-    });
-}
-
-function buscarPerfilGoogle() {
-    gapi.client.people.people.get({
-        resourceName: 'people/me',
-        personFields: 'names,emailAddresses,photos'
-    }).then(response => {
-        console.log('Perfil:', response.result);
-    });
+    showToast('Login Google Drive não está disponível no momento.', 'warning');
 }
 
 function conectarOneDrive() {
-    showToast('🔄 Redirecionando para autenticação da Microsoft...', 'info');
-    
-    // TODO: Implementar OAuth da Microsoft
-    setTimeout(() => {
-        showToast('✅ OneDrive conectado com sucesso!', 'success');
-        Storage.set('storageType', 'onedrive');
-        Storage.set('storageConnected', true);
-        atualizarStatusArmazenamento();
-    }, 1500);
+    showToast('Login OneDrive não está disponível no momento.', 'warning');
 }
 
 function usarArmazenamentoLocal() {
-    if (confirm('Deseja usar apenas armazenamento local? Os dados ficarão salvos apenas neste dispositivo.')) {
-        Storage.set('storageType', 'local');
-        Storage.set('storageConnected', false);
-        showToast('✅ Armazenamento local ativado', 'success');
-        atualizarStatusArmazenamento();
-    }
+    Storage.set('storageType', 'local');
+    Storage.set('storageConnected', false);
+    showToast('✅ Armazenamento local ativado', 'success');
+    atualizarStatusArmazenamento();
 }
 
 function desconectarArmazenamento() {

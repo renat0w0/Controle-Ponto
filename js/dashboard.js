@@ -261,65 +261,35 @@ function criarGraficoBarras(dados) {
                         }
                     }
                 },
-                annotation: {
-                    annotations: {
-                        metaLine: {
-                            type: 'line',
-                            yMin: 44,
-                            yMax: 44,
-                            borderColor: '#EF4444',
-                            borderWidth: 1.5,
-                            borderDash: [6, 3],
-                            label: {
-                                display: true,
-                                content: 'Meta semanal (44h)',
-                                position: 'start',
-                                backgroundColor: 'rgba(239, 68, 68, 0.85)',
-                                color: '#FFFFFF',
-                                font: { size: 11, weight: 'bold', family: "'Inter', 'Roboto', sans-serif" },
-                                padding: { top: 4, bottom: 4, left: 8, right: 8 },
-                                borderRadius: 4
-                            }
-                        }
-                    }
-                }
             },
             scales: {
                 x: {
-                    stacked: true,
-                    ticks: { 
+                    ticks: {
                         color: textColor,
-                        font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
-                        maxRotation: 45,
-                        minRotation: 45
+                        font: { size: 12, family: "'Inter', 'Roboto', sans-serif" },
+                        padding: 12,
+                        maxRotation: 0,
+                        minRotation: 0,
+                        autoSkip: false,
+                        callback: function(value, index, values) {
+                            // Exibe apenas 1 de cada 2 labels para espaçar
+                            return index % 2 === 0 ? this.getLabelForValue(value) : '';
+                        }
                     },
-                    grid: { 
-                        display: false
-                    },
-                    border: {
-                        display: false
+                    grid: {
+                        color: gridColor,
+                        drawOnChartArea: false
                     }
                 },
                 y: {
-                    stacked: true,
                     beginAtZero: true,
-                    max: 80,
-                    ticks: { 
+                    ticks: {
                         color: textColor,
-                        font: { size: 11, weight: '500', family: "'Inter', 'Roboto', sans-serif" },
-                        stepSize: 10,
-                        callback: function(value) {
-                            return value + 'h';
-                        }
+                        font: { size: 12, family: "'Inter', 'Roboto', sans-serif" },
+                        padding: 8
                     },
-                    grid: { 
-                        color: gridColor,
-                        drawBorder: false,
-                        lineWidth: 0.5,
-                        borderDash: [4, 4]
-                    },
-                    border: {
-                        display: false
+                    grid: {
+                        color: gridColor
                     }
                 }
             }
@@ -636,12 +606,7 @@ function aplicarFiltroData() {
 }
 
 function limparFiltroData() {
-    document.getElementById('dataInicio').value = '';
-    const hoje = new Date();
-    document.getElementById('dataFim').valueAsDate = hoje;
-    periodoAtual = 7;
-    salvarFiltro(); // Salvar filtro limpo
-    atualizarDashboard();
+    alert('Limpar filtro não está disponível no dashboard. Use a página de registros.');
 }
 
 window.aplicarFiltroData = aplicarFiltroData;
@@ -663,6 +628,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Atualizar dashboard
     atualizarDashboard();
+    
+    // Renderizar gráfico de média diária
+    criarGraficoMediaDiaria(carregarDados());
     
     // Filtros de período
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -710,6 +678,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
     });
+    
+    atualizarKpiMeta(carregarDados());
 });
 
 // Atualizar card "Hoje" com dados em tempo real
@@ -748,34 +718,31 @@ function atualizarCardHoje() {
         }
         
         // Calcular horas trabalhadas
-        const totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
-        const horas = Math.floor(totalMin / 60);
-        const minutos = totalMin % 60;
-        
+        let totalMin = calcularTotalTrabalhado(agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
+        let horas = Math.floor(totalMin / 60);
+        let minutos = totalMin % 60;
         if (document.getElementById('hojeTempo')) {
             document.getElementById('hojeTempo').textContent = `${horas}h ${minutos}min`;
         }
-        
         // Calcular hora extra
-        const extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
+        let extrasMin = calcularHorasExtras(hoje, agrupado.entrada, agrupado.saida, agrupado.almoco_saida, agrupado.almoco_volta);
         if (document.getElementById('hojeExtra')) {
             if (extrasMin > 0) {
-                const horasExtra = Math.floor(extrasMin / 60);
-                const minutosExtra = extrasMin % 60;
+                let horasExtra = Math.floor(extrasMin / 60);
+                let minutosExtra = extrasMin % 60;
                 document.getElementById('hojeExtra').textContent = `+${horasExtra}h ${minutosExtra}min`;
             } else if (extrasMin < 0) {
-                const abs = Math.abs(extrasMin);
-                const horasExtra = Math.floor(abs / 60);
-                const minutosExtra = abs % 60;
+                let abs = Math.abs(extrasMin);
+                let horasExtra = Math.floor(abs / 60);
+                let minutosExtra = abs % 60;
                 document.getElementById('hojeExtra').textContent = `-${horasExtra}h ${minutosExtra}min`;
             } else {
                 document.getElementById('hojeExtra').textContent = '0h';
             }
         }
-        
         // Progresso (meta de 8h = 480min)
-        const meta = 480; // 8 horas
-        const progresso = Math.min((totalMin / meta) * 100, 100);
+        let meta = 480; // 8 horas
+        let progresso = Math.min((totalMin / meta) * 100, 100);
         if (document.getElementById('progressPercent')) {
             document.getElementById('progressPercent').textContent = `${Math.round(progresso)}%`;
         }
@@ -949,6 +916,72 @@ function criarGraficoPizza(dados) {
     } catch (error) {
         console.error('❌ Erro ao criar gráfico de distribuição:', error);
     }
+}
+
+function criarGraficoMediaDiaria(dados) {
+    const ctx = document.getElementById('chartMedia');
+    if (!ctx) return;
+    if (window.chartMedia && typeof window.chartMedia.destroy === 'function') window.chartMedia.destroy();
+
+    // Filtrar últimos 30 dias
+    const hoje = new Date();
+    const dias = [];
+    const medias = [];
+    for (let i = 29; i >= 0; i--) {
+        const dia = new Date(hoje);
+        dia.setDate(hoje.getDate() - i);
+        const diaStr = dia.toISOString().split('T')[0];
+        dias.push(diaStr);
+        // Filtrar registros do dia
+        const registrosDia = dados.filter(r => r.data === diaStr);
+        if (registrosDia.length > 0) {
+            const totalMin = registrosDia.reduce((acc, r) => acc + calcularTotalTrabalhado(r.entrada, r.saida, r.almoco_saida, r.almoco_volta), 0);
+            medias.push(Math.round((totalMin / registrosDia.length) / 6) / 10); // média em horas, 1 casa decimal
+        } else {
+            medias.push(0);
+        }
+    }
+    const isDark = document.body.classList.contains('dark-theme');
+    window.chartMedia = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dias.map(d => d.slice(5)),
+            datasets: [{
+                label: 'Média Diária (h)',
+                data: medias,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.1)',
+                pointRadius: 3,
+                pointBackgroundColor: '#3b82f6',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.parsed.y}h`
+                    }
+                }
+            }
+            // scales deve estar aqui, não dentro de plugins
+            ,scales: {
+                x: {
+                    ticks: { color: isDark ? '#E5E7EB' : '#1E293B', font: { size: 11 } },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: isDark ? '#E5E7EB' : '#1E293B', font: { size: 11 } },
+                    grid: { color: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)' }
+                }
+            }
+        }
+    });
 }
 
 // Inicializar com atualização automática do card Hoje
@@ -1264,4 +1297,25 @@ function copiarLink() {
     });
 }
 
-// Registro rápido de almoço removido (UI e handlers eliminados)
+// ... nova função para atualizar KPI de meta
+function atualizarKpiMeta(registros) {
+    // Últimos 30 dias
+    const hoje = new Date();
+    let diasValidos = 0;
+    let diasMeta = 0;
+    for (let i = 0; i < 30; i++) {
+        const dia = new Date(hoje);
+        dia.setDate(hoje.getDate() - i);
+        const diaStr = dia.toISOString().split('T')[0];
+        const registrosDia = registros.filter(r => r.data === diaStr);
+        if (registrosDia.length > 0) {
+            diasValidos++;
+            const totalMin = registrosDia.reduce((acc, r) => acc + calcularTotalTrabalhado(r.entrada, r.saida, r.almoco_saida, r.almoco_volta), 0);
+            if (totalMin >= 480) diasMeta++;
+        }
+    }
+    const percent = diasValidos > 0 ? Math.round((diasMeta / diasValidos) * 100) : 0;
+    const el = document.getElementById('kpiMeta');
+    if (el) el.textContent = percent + '%';
+}
+

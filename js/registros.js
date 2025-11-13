@@ -134,9 +134,15 @@ function renderizarRegistros(registros) {
     
     let html = '<div class="card">';
     html += '<div style="overflow-x: auto;">';
-    html += '<table class="table"><thead><tr>';
-    // Removidas colunas de almoço da visão; lógica e dados permanecem no storage
-    html += '<th>Data</th><th>Dia</th><th>Entrada</th><th>Saída</th><th>Total Trabalhado</th><th>Hora Extra</th>';
+    html += '<table class="table" style="table-layout:fixed;width:100%;"><colgroup>' +
+            '<col style="width:14%">' + // Data
+            '<col style="width:12%">' + // Dia
+            '<col style="width:14%">' + // Entrada
+            '<col style="width:14%">' + // Saída
+            '<col style="width:23%">' + // Total Trabalhado
+            '<col style="width:23%">' + // Hora Extra
+            '</colgroup><thead><tr>';
+    html += '<th style="text-align:center;">Data</th><th style="text-align:center;">Dia</th><th style="text-align:center;">Entrada</th><th style="text-align:center;">Saída</th><th style="text-align:center;">Total Trabalhado</th><th style="text-align:center;">Hora Extra</th>';
     html += '</tr></thead><tbody>';
     
     registrosPaginados.forEach(reg => {
@@ -163,12 +169,12 @@ function renderizarRegistros(registros) {
         
         html += `<tr class="${rowClass}">`;
         html += `<td><strong>${formatarData(reg.data)}</strong></td>`;
-        html += `<td><span class="${badgeDiaClass}">${diaSemana}</span></td>`;
-    html += `<td>${reg.entrada || '-'}</td>`;
+        html += `<td style='text-align:center;vertical-align:middle;'><span class="${badgeDiaClass}" style="display:inline-block;min-width:50px;text-align:center;">${diaSemana}</span></td>`;
+    html += `<td style='text-align:center;vertical-align:middle;'>${reg.entrada || '-'}</td>`;
     // saÃ­da (final do expediente)
-    html += `<td>${reg.saida || '-'}</td>`;
-    html += `<td><strong>${formatarMinutosParaHoras(totalMin)}</strong></td>`;
-    html += `<td><span class="${extraBadgeClass}">${extraPrefix}${formatarMinutosParaHoras(Math.abs(extrasMin))}</span></td>`;
+    html += `<td style='text-align:center;vertical-align:middle;'>${reg.saida || '-'}</td>`;
+    html += `<td style='text-align:center;vertical-align:middle;'><strong>${formatarMinutosParaHoras(totalMin)}</strong></td>`;
+    html += `<td style='text-align:center;vertical-align:middle;'><span class="${extraBadgeClass}" style="display:inline-block;min-width:70px;text-align:center;">${extraPrefix}${formatarMinutosParaHoras(Math.abs(extrasMin))}</span></td>`;
         html += '</tr>';
     });
     
@@ -253,25 +259,24 @@ window.mudarPagina = mudarPagina;
 // Carregar tabela ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔄 Página de registros carregada');
-    
-    // Verificar se há dados
     const registros = carregarDados();
     console.log('📊 Total de registros no localStorage:', registros.length);
-    
-    // Mostrar um exemplo de registro
     if (registros.length > 0) {
         console.log('📄 Exemplo de registro:', JSON.stringify(registros[0]));
+        // Definir filtro: menor data até hoje
+        const datas = registros.map(r => r.data).sort();
+        const menorData = datas[0];
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('filtroDataInicio').value = menorData;
+        document.getElementById('filtroDataFim').value = hoje;
+    } else {
+        // Se não houver registros, usar últimos 90 dias
+        const hoje = new Date();
+        const noventaDiasAtras = new Date();
+        noventaDiasAtras.setDate(hoje.getDate() - 90);
+        document.getElementById('filtroDataInicio').value = noventaDiasAtras.toISOString().split('T')[0];
+        document.getElementById('filtroDataFim').value = hoje.toISOString().split('T')[0];
     }
-    
-    // Definir filtros padrão para mostrar últimos 90 dias
-    const hoje = new Date();
-    const noventaDiasAtras = new Date();
-    noventaDiasAtras.setDate(hoje.getDate() - 90);
-    
-    document.getElementById('filtroDataInicio').value = noventaDiasAtras.toISOString().split('T')[0];
-    document.getElementById('filtroDataFim').value = hoje.toISOString().split('T')[0];
-    
-    // Carregar tabela sem filtro (mostrar tudo)
     registrosFiltrados = null;
     atualizarTabela();
 });
