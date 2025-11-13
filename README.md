@@ -1,20 +1,6 @@
-<div align="center">
+# ⏰ Controle de Ponto (Web)# ⏰ Controle de Ponto (Web)
 
-# ⏰ Controle de Ponto
 
-### Sistema moderno de controle de ponto eletrônico
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://github.com/renat0w0)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/renat0w0/Controle-Ponto/pulls)
-
-[Demo Online](https://renat0w0.github.io/Controle-Ponto/) • [Reportar Bug](https://github.com/renat0w0/Controle-Ponto/issues) • [Sugerir Feature](https://github.com/renat0w0/Controle-Ponto/issues)
-
-</div>
-
----
-
-## 📋 Sobre o Projeto
 
 Aplicação web moderna e responsiva para controle de ponto eletrônico com integração à API IDSecure. Desenvolvida com foco em usabilidade, performance e experiência do usuário.
 

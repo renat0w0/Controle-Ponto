@@ -27,11 +27,7 @@ function importarCSV(conteudo) {
     const registrosNovos = processarCSVCatraca(conteudo);
     
     if (registrosNovos.length === 0) {
-        if (typeof toast !== 'undefined') {
-            toast.warning('Nenhum registro encontrado no arquivo!');
-        } else {
-            alert('⚠️ Nenhum registro encontrado no arquivo!');
-        }
+        alert('⚠️ Nenhum registro encontrado no arquivo!');
         return { importados: 0, duplicados: 0 };
     }
     
@@ -93,15 +89,9 @@ function configurarImportacao() {
     
     function processarArquivo(file) {
         if (!file.name.endsWith('.csv')) {
-            if (typeof toast !== 'undefined') {
-                toast.warning('Por favor, selecione um arquivo CSV!');
-            } else {
-                alert('⚠️ Por favor, selecione um arquivo CSV!');
-            }
+            alert('⚠️ Por favor, selecione um arquivo CSV!');
             return;
         }
-        
-        const loadingToast = typeof toast !== 'undefined' ? toast.loading('Importando registros...') : null;
         
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -111,16 +101,8 @@ function configurarImportacao() {
             document.getElementById('duplicateCount').textContent = resultado.duplicados;
             resultDiv.style.display = 'block';
             
-            if (loadingToast) {
-                loadingToast.dismiss();
-            }
-            
             if (resultado.importados > 0) {
-                if (typeof toast !== 'undefined') {
-                    toast.success(`${resultado.importados} registros importados com sucesso!`);
-                } else {
-                    alert(`✅ ${resultado.importados} registros importados com sucesso!`);
-                }
+                alert(`✅ ${resultado.importados} registros importados com sucesso!`);
             }
         };
         reader.readAsText(file, 'UTF-8');

@@ -557,30 +557,15 @@ function getWeekNumber(date) {
 }
 
 function atualizarDashboard() {
-    const statsCards = document.querySelectorAll('.stat-card');
-    statsCards.forEach(card => {
-        if (!card.querySelector('.loading-overlay')) {
-            const overlay = document.createElement('div');
-            overlay.className = 'loading-overlay';
-            overlay.innerHTML = '<div class="spinner spinner-small"></div>';
-            card.style.position = 'relative';
-            card.appendChild(overlay);
-        }
-    });
+    const dados = filtrarDadosPorPeriodo();
+    const metricas = calcularMetricas(dados);
     
-    setTimeout(() => {
-        const dados = filtrarDadosPorPeriodo();
-        const metricas = calcularMetricas(dados);
-        
-        atualizarKPIs(metricas);
-        atualizarCardHoje();
-        criarGraficoBarras(dados);
-        criarGraficoPizza(dados);
-        criarGraficoLinha(dados);
-        criarTabelaSemanal(dados);
-        
-        document.querySelectorAll('.loading-overlay').forEach(el => el.remove());
-    }, 300);
+    atualizarKPIs(metricas);
+    atualizarCardHoje();
+    criarGraficoBarras(dados);
+    criarGraficoPizza(dados);
+    criarGraficoLinha(dados);
+    criarTabelaSemanal(dados);
 }
 
 function aplicarFiltroPersonalizado() {
@@ -588,28 +573,22 @@ function aplicarFiltroPersonalizado() {
     const dataFim = document.getElementById('dataFim').value;
     
     if (!dataInicio || !dataFim) {
-        if (typeof toast !== 'undefined') {
-            toast.warning('Selecione as duas datas!');
-        } else {
-            alert('⚠️ Selecione as duas datas!');
-        }
+        alert('⚠️ Selecione as duas datas!');
         return;
     }
     
     if (new Date(dataInicio) > new Date(dataFim)) {
-        if (typeof toast !== 'undefined') {
-            toast.error('A data inicial não pode ser maior que a final!');
-        } else {
-            alert('⚠️ A data inicial não pode ser maior que a final!');
-        }
+        alert('⚠️ A data inicial não pode ser maior que a final!');
         return;
     }
     
+    // Desativar todos os filtros predefinidos
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     
+    // Definir período personalizado
     periodoAtual = { inicio: dataInicio, fim: dataFim };
     
-    salvarFiltro();
+    salvarFiltro(); // Salvar filtro personalizado
     atualizarDashboard();
 }
 
