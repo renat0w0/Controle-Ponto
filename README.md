@@ -257,6 +257,7 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 **Renato Alves**
 
 [![GitHub](https://img.shields.io/badge/GitHub-@renat0w0-181717?style=for-the-badge&logo=github)](https://github.com/renat0w0)
+[![Email](https://img.shields.io/badge/Email-Contato-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:seu-email@exemplo.com)
 
 </div>
 
